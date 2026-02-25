@@ -1,0 +1,13 @@
+target/
+*.class
+*.war
+*.ear
+*.jar
+.classpath
+.project
+.settings/
+.idea/
+*.iml
+*.iws
+*.ipr
+nb-configuration.xml
