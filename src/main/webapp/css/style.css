@@ -1,0 +1,176 @@
+/* Grand Vista Hotel - Custom Styles */
+:root {
+    --hotel-primary: #1a3c5e;
+    --hotel-secondary: #c9a84c;
+    --hotel-light: #f8f5f0;
+    --hotel-dark: #0d1f33;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--hotel-light);
+    color: #333;
+}
+
+/* Navbar */
+.navbar-hotel {
+    background: linear-gradient(135deg, var(--hotel-primary), var(--hotel-dark));
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.navbar-hotel .navbar-brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--hotel-secondary) !important;
+    letter-spacing: 1px;
+}
+
+.navbar-hotel .nav-link {
+    color: rgba(255,255,255,0.85) !important;
+    transition: color 0.2s;
+}
+
+.navbar-hotel .nav-link:hover {
+    color: var(--hotel-secondary) !important;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, var(--hotel-primary) 0%, #2d6a9f 100%);
+    color: white;
+    padding: 80px 0;
+    text-align: center;
+}
+
+.hero-section h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+}
+
+.hero-section p {
+    font-size: 1.25rem;
+    opacity: 0.9;
+}
+
+/* Cards */
+.card {
+    border: none;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.card-header-hotel {
+    background: linear-gradient(135deg, var(--hotel-primary), #2d6a9f);
+    color: white;
+    border-radius: 10px 10px 0 0 !important;
+    padding: 1rem 1.5rem;
+}
+
+/* Buttons */
+.btn-hotel-primary {
+    background: var(--hotel-primary);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.btn-hotel-primary:hover {
+    background: var(--hotel-dark);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-hotel-gold {
+    background: var(--hotel-secondary);
+    color: var(--hotel-dark);
+    border: none;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.btn-hotel-gold:hover {
+    background: #b8952a;
+    color: var(--hotel-dark);
+}
+
+/* Status Badges */
+.badge-pending   { background-color: #ffc107; color: #333; }
+.badge-confirmed { background-color: #28a745; color: white; }
+.badge-checkedin { background-color: #17a2b8; color: white; }
+.badge-checkedout { background-color: #6c757d; color: white; }
+.badge-cancelled { background-color: #dc3545; color: white; }
+.badge-paid      { background-color: #28a745; color: white; }
+.badge-voided    { background-color: #dc3545; color: white; }
+
+/* Stats Cards */
+.stat-card {
+    text-align: center;
+    padding: 25px;
+    border-radius: 12px;
+    color: white;
+}
+
+.stat-card .stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.stat-card .stat-label {
+    font-size: 0.9rem;
+    opacity: 0.85;
+}
+
+.stat-card-blue   { background: linear-gradient(135deg, #1a3c5e, #2d6a9f); }
+.stat-card-green  { background: linear-gradient(135deg, #1a6b3c, #28a745); }
+.stat-card-orange { background: linear-gradient(135deg, #8a4800, #fd7e14); }
+.stat-card-purple { background: linear-gradient(135deg, #4b0082, #9b59b6); }
+
+/* Star Rating */
+.stars { color: #f4c430; font-size: 1.2rem; }
+
+/* Table */
+.table-hotel thead {
+    background: var(--hotel-primary);
+    color: white;
+}
+
+/* Forms */
+.form-section {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    max-width: 600px;
+    margin: 40px auto;
+}
+
+/* Footer */
+footer {
+    background: var(--hotel-dark);
+    color: rgba(255,255,255,0.7);
+    padding: 30px 0;
+    margin-top: 60px;
+}
+
+footer a { color: var(--hotel-secondary); text-decoration: none; }
+
+/* Available / Unavailable */
+.room-available   { border-left: 4px solid #28a745; }
+.room-unavailable { border-left: 4px solid #dc3545; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .hero-section h1 { font-size: 2rem; }
+    .stat-card .stat-number { font-size: 1.8rem; }
+}
