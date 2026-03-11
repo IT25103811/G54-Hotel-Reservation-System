@@ -74,7 +74,7 @@ G54-Hotel-Reservation-System/
 
 | Module | Member | Branch | Status |
 |--------|--------|--------|--------|
-| 👤 Guest Management | Gunarathna R.P.Y.S.A. (IT25103811) | `yasas` | ✅ Complete |
+| 👤 Guest Management | Gunarathna R.P.Y.S.A. (IT25103811) | `yasas` `Guest-managment-CRUD` | ✅ Complete |
 | 🛏️ Room Management | TBD | — | 🔄 In Progress |
 | 📅 Reservation Management | TBD | — | 🔄 In Progress |
 | 💳 Payment/Billing Management | TBD | — | 🔄 In Progress |
