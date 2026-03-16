@@ -89,6 +89,15 @@
                     </form>
                 </div>
             </div>
+            <hr class="my-4">
+
+            <form action="${pageContext.request.contextPath}/guests" method="post"
+                  onsubmit="return confirm('Are you sure you want to permanently delete your account?');">
+                <input type="hidden" name="action" value="selfDelete">
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Delete My Account
+                </button>
+            </form>
 
             <div class="row mt-4">
                 <div class="col-sm-6">

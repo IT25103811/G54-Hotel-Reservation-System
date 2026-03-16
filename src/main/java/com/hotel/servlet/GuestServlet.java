@@ -61,6 +61,17 @@ public class GuestServlet extends HttpServlet {
                 case "profile":
                     handleUpdateProfile(req, resp);
                     break;
+                case "selfDelete":
+                    requireGuestLogin(req, resp);
+                    if (!resp.isCommitted()) {
+                        HttpSession s = req.getSession(false);
+                        Guest g = (Guest) s.getAttribute("loggedInGuest");
+
+                        guestDAO.delete(g.getId());     // delete from file
+                        s.invalidate();                 // logout user
+                        resp.sendRedirect(req.getContextPath() + "/guests?action=login&deleted=true");
+                    }
+                    break;
                 case "delete":
                     requireStaffLogin(req, resp);
                     if (!resp.isCommitted()) {
