@@ -122,8 +122,21 @@ public class GuestServlet extends HttpServlet {
         if (guest == null) { resp.sendRedirect(req.getContextPath() + "/guests?action=login"); return; }
         String phone = req.getParameter("phone");
         String password = req.getParameter("password");
+        String name = req.getParameter("name");
+        String email = req.getParameter("email");
+        if (email != null && !email.isBlank() && !email.equalsIgnoreCase(guest.getEmail())) {
+            Guest existing = guestDAO.findByEmail(email);
+            if (existing != null && !existing.getId().equals(guest.getId())) {
+                req.setAttribute("error", "This email is already used by another account.");
+                req.getRequestDispatcher("/guest/profile.jsp").forward(req, resp);
+                return;
+            }
+        }
         if (phone != null && !phone.isEmpty()) guest.setPhone(phone);
         if (password != null && !password.isEmpty()) guest.setPassword(password);
+        if (name != null && !name.isBlank()) guest.setName(name);
+        if (email != null && !email.isBlank()) guest.setEmail(email);
+
         guestDAO.update(guest);
         session.setAttribute("loggedInGuest", guest);
         req.setAttribute("success", "Profile updated.");

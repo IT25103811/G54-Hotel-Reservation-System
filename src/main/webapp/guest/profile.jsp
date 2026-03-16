@@ -55,16 +55,34 @@
                     </table>
 
                     <h6>Update Profile</h6>
+
+                    <% if (request.getAttribute("error") != null) { %>
+                    <div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> ${error}</div>
+                    <% } %>
+
                     <form action="${pageContext.request.contextPath}/guests" method="post">
                         <input type="hidden" name="action" value="profile">
+
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" name="name" class="form-control" value="<%= guest.getName() %>">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" value="<%= guest.getEmail() %>">
+                        </div>
+
                         <div class="mb-3">
                             <label class="form-label">Phone Number</label>
                             <input type="tel" name="phone" class="form-control" value="<%= guest.getPhone() != null ? guest.getPhone() : "" %>">
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label">New Password <span class="text-muted small">(leave blank to keep current)</span></label>
                             <input type="password" name="password" class="form-control" placeholder="New password">
                         </div>
+
                         <button type="submit" class="btn btn-hotel-primary">
                             <i class="bi bi-save"></i> Save Changes
                         </button>
