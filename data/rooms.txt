@@ -1,0 +1,2 @@
+101|delux|1000.0|Wi-Fi,T-V,AC|false|1|STANDARD|false
+102|deluxe|300.0|wifi|false|1|STANDARD|false
