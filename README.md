@@ -98,8 +98,9 @@ G54-Hotel-Reservation-System/
 
 - ✅ Guest Registration (Regular / VIP with membership tier)
 - ✅ Guest Login with email & password
-- ✅ Profile View & Update (phone, password)
+- ✅ Profile View & Update (phone, password,name,email)
 - ✅ Guest List with search (staff-only access)
+- ✅ Guest selfe Delete 
 - ✅ Guest Delete (staff-only access)
 - ✅ Session management (login/logout)
 - ✅ File-based data persistence (`data/guests.txt`)
@@ -198,6 +199,8 @@ main
 | 7 | Add guest registration page with Regular/VIP selection | View layer |
 | 8 | Add guest profile page with update functionality | View layer |
 | 9 | Add staff-only guest list page with search | View layer |
+| 10 | Add Selfe delete account | View layer |
+| 11 | Add update name and email | View layer |
 
 ---
 
