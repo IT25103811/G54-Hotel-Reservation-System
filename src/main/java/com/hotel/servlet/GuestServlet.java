@@ -96,6 +96,12 @@ public class GuestServlet extends HttpServlet {
         String guestType = req.getParameter("guestType");
         String tier = req.getParameter("membershipTier");
 
+        if (phone == null || !phone.matches("^\\+[0-9]{11}$")) {
+            req.setAttribute("error", "Invalid phone number. Must start with '+' and contain exactly 11 numbers (e.g., +94771234567).");
+            req.getRequestDispatcher("/guest/register.jsp").forward(req, resp);
+            return;
+        }
+
         if (guestDAO.findByEmail(email) != null) {
             req.setAttribute("error", "Email already registered.");
             req.getRequestDispatcher("/guest/register.jsp").forward(req, resp);

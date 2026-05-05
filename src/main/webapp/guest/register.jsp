@@ -41,8 +41,13 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Phone Number</label>
-                <input type="tel" name="phone" class="form-control" placeholder="+1 (555) 000-0000">
+                <label class="form-label">Phone Number *</label>
+                <input type="tel" name="phone" class="form-control" placeholder="+94771234567"
+                       required
+                       maxlength="12"
+                       pattern="^\+[0-9]{11}$"
+                       title="Phone number must start with '+' followed by country code and total 11 digits. (e.g., +94771234567)">
+                <div class="invalid-feedback">Valid phone number with country code is required. Cannot exceed 12 characters.</div>
             </div>
 
             <div class="mb-3">
