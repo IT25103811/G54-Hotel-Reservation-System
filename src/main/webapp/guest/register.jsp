@@ -36,8 +36,10 @@
 
             <div class="mb-3">
                 <label class="form-label">Email Address *</label>
-                <input type="email" name="email" class="form-control" required placeholder="your@email.com">
-                <div class="invalid-feedback">Valid email is required.</div>
+                <input type="email" name="email" class="form-control" required placeholder="your@email.com"
+                       pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                       title="Please enter a valid email address (e.g., name@gmail.com)">
+                <div class="invalid-feedback">A valid email is required (must contain @ and .com/.lk etc).</div>
             </div>
 
             <div class="mb-3">

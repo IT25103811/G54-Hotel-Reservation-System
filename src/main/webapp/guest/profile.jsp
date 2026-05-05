@@ -73,9 +73,16 @@
                             <input type="email" name="email" class="form-control" value="<%= guest.getEmail() %>">
                         </div>
 
+                        <% if (request.getAttribute("error") != null) { %>
+                        <div class="alert alert-danger"><i class="bi bi-exclamation-circle"></i> ${error}</div>
+                        <% } %>
+
                         <div class="mb-3">
                             <label class="form-label">Phone Number</label>
-                            <input type="tel" name="phone" class="form-control" value="<%= guest.getPhone() != null ? guest.getPhone() : "" %>">
+                            <input type="tel" name="phone" class="form-control" value="<%= guest.getPhone() != null ? guest.getPhone() : "" %>"
+                                   maxlength="12"
+                                   pattern="^\+[0-9]{11}$"
+                                   title="Phone number must start with '+' followed by country code and total 11 digits. (e.g., +94771234567)">
                         </div>
 
                         <div class="mb-3">
