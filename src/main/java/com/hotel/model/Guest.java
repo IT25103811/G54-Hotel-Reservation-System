@@ -2,6 +2,7 @@ package com.hotel.model;
 
 /**
  * Abstract base class for all hotel guests.
+ 
  * Demonstrates encapsulation and abstraction.
  */
 public abstract class Guest {
