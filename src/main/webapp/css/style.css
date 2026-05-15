@@ -174,3 +174,68 @@ footer a { color: var(--hotel-secondary); text-decoration: none; }
     .hero-section h1 { font-size: 2rem; }
     .stat-card .stat-number { font-size: 1.8rem; }
 }
+
+
+/* ── Reservation Module Enhancements (Commit 5) ──────────────────────────── */
+
+/* Reservation status badges (consistent across all views) */
+.res-status-PENDING    { background:#fff3cd; color:#856404; border:1px solid #ffc107; }
+.res-status-CONFIRMED  { background:#d1e7dd; color:#0f5132; border:1px solid #198754; }
+.res-status-CHECKED_IN { background:#cff4fc; color:#055160; border:1px solid #0dcaf0; }
+.res-status-CHECKED_OUT{ background:#e2e3e5; color:#383d41; border:1px solid #6c757d; }
+.res-status-CANCELLED  { background:#f8d7da; color:#842029; border:1px solid #dc3545; }
+
+/* Booking form step numbers */
+.booking-step { counter-increment: booking-steps; }
+
+/* Reservation table amount column */
+.res-amount { font-weight: 700; color: #1a6b3c; font-variant-numeric: tabular-nums; }
+
+/* Form section dividers */
+.form-section-divider {
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.6px;
+    color: var(--hotel-primary); font-weight: 700;
+    margin-bottom: 14px; padding-bottom: 8px;
+    border-bottom: 2px solid #e0e8f0;
+}
+
+/* Price summary panel */
+.price-summary-panel {
+    background: linear-gradient(135deg, #eef3f8, #dce8f5);
+    border: 1px solid #b8d0e8;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+/* Sticky sidebar top offset (below navbar) */
+.res-sticky-sidebar { position: sticky; top: 76px; }
+
+/* Timeline progress indicator */
+.res-timeline { position: relative; padding-left: 24px; }
+.res-timeline::before {
+    content: ''; position: absolute; left: 6px; top: 0; bottom: 0;
+    width: 2px; background: #e0e8f0;
+}
+.res-timeline-item { position: relative; margin-bottom: 14px; }
+.res-timeline-dot  {
+    position: absolute; left: -24px; top: 3px;
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid #ced4da; background: white;
+}
+.res-timeline-dot.done   { border-color: #198754; background: #198754; }
+.res-timeline-dot.active { border-color: var(--hotel-primary); background: var(--hotel-primary); }
+
+/* Smooth transitions for filter/search */
+.res-row-hidden { display: none; }
+
+/* Responsive table scrolling */
+@media (max-width: 768px) {
+    .table-responsive-res { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .res-sticky-sidebar   { position: static; }
+}
+
+/* Print styles for reservation details */
+@media print {
+    .navbar-hotel, footer, .btn, .alert-dismissible .btn-close { display: none !important; }
+    .card { box-shadow: none !important; border: 1px solid #dee2e6 !important; }
+}
