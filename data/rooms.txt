@@ -1,1 +1,2 @@
 101|delux|300.0|wIfi|false|1|STANDARD|false
+202|delux|300.0|wIfi|false|2|STANDARD|false
