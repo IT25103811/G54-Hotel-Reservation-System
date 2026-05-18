@@ -12,14 +12,17 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+
 @WebServlet("/reservations")
 public class ReservationServlet extends HttpServlet {
 
-    private final ReservationDAO reservationDAO = new ReservationDAO();
-    private final RoomDAO        roomDAO        = new RoomDAO();
-    private final GuestDAO       guestDAO       = new GuestDAO();
 
-    // ── GET ──────────────────────────────────────────────────────────────────
+    private final IReservationRepository reservationDAO = new ReservationDAO();
+
+    private final RoomDAO  roomDAO  = new RoomDAO();
+    private final GuestDAO guestDAO = new GuestDAO();
+
+    // GET =====================================================================
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -28,18 +31,18 @@ public class ReservationServlet extends HttpServlet {
         if (action == null) action = "list";
         try {
             switch (action) {
-                case "book":             handleBookForm(req, resp);         break;
-                case "modify":           handleModifyForm(req, resp);       break;
-                case "view":             handleView(req, resp);             break;
-                case "checkAvailability":handleCheckAvailability(req, resp);break;
-                default:                 handleList(req, resp);
+                case "book":              handleBookForm(req, resp);          break;
+                case "modify":            handleModifyForm(req, resp);        break;
+                case "view":              handleView(req, resp);              break;
+                case "checkAvailability": handleCheckAvailability(req, resp); break;
+                default:                  handleList(req, resp);
             }
         } catch (Exception e) {
             handleError(req, resp, e);
         }
     }
 
-    // ── POST ─────────────────────────────────────────────────────────────────
+    // POST ====================================================================
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -59,7 +62,7 @@ public class ReservationServlet extends HttpServlet {
         }
     }
 
-    // ── Handlers: GET ────────────────────────────────────────────────────────
+    // Handlers: GET ===========================================================
 
     private void handleList(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -118,7 +121,7 @@ public class ReservationServlet extends HttpServlet {
                 return;
             }
 
-            String excl = excludeId.isEmpty() ? null : excludeId;
+            String  excl    = excludeId.isEmpty() ? null : excludeId;
             boolean overlap = reservationDAO.checkDateOverlap(roomNumber, checkIn, checkOut, excl);
 
             if (overlap) {
@@ -130,7 +133,6 @@ public class ReservationServlet extends HttpServlet {
             out.print("{\"available\":false,\"message\":\"Invalid date format.\"}");
         }
     }
-
 
     private void handleBookForm(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -144,12 +146,12 @@ public class ReservationServlet extends HttpServlet {
         HttpSession session = req.getSession(false);
         if (session == null
                 || (session.getAttribute("loggedInStaff") == null
-                && session.getAttribute("loggedInGuest") == null)) {
+                &&  session.getAttribute("loggedInGuest") == null)) {
             resp.sendRedirect(req.getContextPath() + "/guests?action=login");
             return;
         }
 
-        String id  = req.getParameter("reservationId");
+        String id       = req.getParameter("reservationId");
         Reservation res = reservationDAO.findById(id);
         if (res == null) {
             req.setAttribute("errorMessage", "Reservation not found (ID: " + id + ").");
@@ -166,14 +168,13 @@ public class ReservationServlet extends HttpServlet {
         }
 
         req.setAttribute("reservation", res);
-        // FIX: findAvailable() → findAll()
         req.setAttribute("availableRooms", roomDAO.findAll());
         req.getRequestDispatcher("/reservation/modify.jsp").forward(req, resp);
     }
 
     private void handleView(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        String id  = req.getParameter("reservationId");
+        String id       = req.getParameter("reservationId");
         Reservation res = reservationDAO.findById(id);
         if (res == null) {
             resp.sendRedirect(req.getContextPath() + "/reservations?action=list");
@@ -181,24 +182,21 @@ public class ReservationServlet extends HttpServlet {
         }
         Guest guest = guestDAO.findById(res.getGuestId());
         req.setAttribute("reservation", res);
-        req.setAttribute("guestName", guest != null ? guest.getName() : res.getGuestId());
+        req.setAttribute("guestName",       guest != null ? guest.getName() : res.getGuestId());
         req.setAttribute("cancellationFee", res.calculateCancellationFee());
         req.getRequestDispatcher("/reservation/view.jsp").forward(req, resp);
     }
 
-    // ── Handlers: POST ───────────────────────────────────────────────────────
+    // Handlers: POST ==========================================================
 
     private void handleBook(HttpServletRequest req, HttpServletResponse resp)
             throws IOException, ServletException {
 
-        HttpSession session  = req.getSession(false);
-        Guest loggedGuest    = session != null ? (Guest) session.getAttribute("loggedInGuest") : null;
-
-        String guestId       = trim(req.getParameter("guestId"));
-        String roomNumber    = trim(req.getParameter("roomNumber"));
-        String checkInStr    = trim(req.getParameter("checkIn"));
-        String checkOutStr   = trim(req.getParameter("checkOut"));
-        String specialReqs   = trim(req.getParameter("specialRequests"));
+        String guestId     = trim(req.getParameter("guestId"));
+        String roomNumber  = trim(req.getParameter("roomNumber"));
+        String checkInStr  = trim(req.getParameter("checkIn"));
+        String checkOutStr = trim(req.getParameter("checkOut"));
+        String specialReqs = trim(req.getParameter("specialRequests"));
 
         if (guestId.isEmpty() || roomNumber.isEmpty() || checkInStr.isEmpty() || checkOutStr.isEmpty()) {
             bookError(req, resp, "All required fields must be filled in.");
@@ -254,9 +252,7 @@ public class ReservationServlet extends HttpServlet {
             return;
         }
 
-        double baseAmount  = room.calculatePrice() * nights;
-        double discount    = guest.calculateDiscount();
-        double totalAmount = baseAmount * (1 - discount);
+        double totalAmount = room.calculatePrice() * nights * (1 - guest.calculateDiscount());
 
         String id = FileUtils.generateId("R");
         Reservation reservation = new Reservation(
@@ -264,8 +260,6 @@ public class ReservationServlet extends HttpServlet {
                 Reservation.Status.CONFIRMED, totalAmount);
         reservation.setSpecialRequests(specialReqs);
         reservationDAO.save(reservation);
-
-
 
         req.getSession().setAttribute("successMessage",
                 "Reservation " + id + " confirmed for room " + roomNumber
@@ -279,7 +273,7 @@ public class ReservationServlet extends HttpServlet {
         HttpSession session = req.getSession(false);
         if (session == null
                 || (session.getAttribute("loggedInStaff") == null
-                && session.getAttribute("loggedInGuest") == null)) {
+                &&  session.getAttribute("loggedInGuest") == null)) {
             resp.sendRedirect(req.getContextPath() + "/guests?action=login");
             return;
         }
@@ -353,7 +347,7 @@ public class ReservationServlet extends HttpServlet {
 
             Room room = roomDAO.findByNumber(res.getRoomNumber());
             if (room != null) {
-                Guest guest = guestDAO.findById(res.getGuestId());
+                Guest guest     = guestDAO.findById(res.getGuestId());
                 double discount = guest != null ? guest.calculateDiscount() : 0;
                 res.setTotalAmount(room.calculatePrice() * nights * (1 - discount));
             }
@@ -374,9 +368,7 @@ public class ReservationServlet extends HttpServlet {
             } catch (IllegalArgumentException ignored) {}
         }
 
-        if (!specialReqs.isEmpty()) {
-            res.setSpecialRequests(specialReqs);
-        }
+        if (!specialReqs.isEmpty()) res.setSpecialRequests(specialReqs);
 
         reservationDAO.update(res);
         req.getSession().setAttribute("successMessage", "Reservation updated successfully.");
@@ -387,7 +379,8 @@ public class ReservationServlet extends HttpServlet {
             throws IOException {
         String resId    = trim(req.getParameter("reservationId"));
         Reservation res = reservationDAO.findById(resId);
-        if (res != null && res.getStatus() != Reservation.Status.CANCELLED
+        if (res != null
+                && res.getStatus() != Reservation.Status.CANCELLED
                 && res.getStatus() != Reservation.Status.CHECKED_OUT) {
             res.setStatus(Reservation.Status.CANCELLED);
             reservationDAO.update(res);
@@ -399,27 +392,25 @@ public class ReservationServlet extends HttpServlet {
         resp.sendRedirect(req.getContextPath() + "/reservations?action=list");
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // Helpers =================================================================
 
     private void bookError(HttpServletRequest req, HttpServletResponse resp, String msg)
             throws ServletException, IOException {
-        req.setAttribute("error", msg);
-        // FIX: findAvailable() → findAll()
+        req.setAttribute("error",          msg);
         req.setAttribute("availableRooms", roomDAO.findAll());
-        req.setAttribute("prevGuestId",  req.getParameter("guestId"));
-        req.setAttribute("prevRoom",     req.getParameter("roomNumber"));
-        req.setAttribute("prevCheckIn",  req.getParameter("checkIn"));
-        req.setAttribute("prevCheckOut", req.getParameter("checkOut"));
-        req.setAttribute("prevSpecial",  req.getParameter("specialRequests"));
+        req.setAttribute("prevGuestId",    req.getParameter("guestId"));
+        req.setAttribute("prevRoom",       req.getParameter("roomNumber"));
+        req.setAttribute("prevCheckIn",    req.getParameter("checkIn"));
+        req.setAttribute("prevCheckOut",   req.getParameter("checkOut"));
+        req.setAttribute("prevSpecial",    req.getParameter("specialRequests"));
         req.getRequestDispatcher("/reservation/book.jsp").forward(req, resp);
     }
 
     private void modifyError(HttpServletRequest req, HttpServletResponse resp,
                              Reservation res, String msg)
             throws ServletException, IOException {
-        req.setAttribute("reservation", res);
-        req.setAttribute("error", msg);
-        // FIX: findAvailable() → findAll()
+        req.setAttribute("reservation",    res);
+        req.setAttribute("error",          msg);
         req.setAttribute("availableRooms", roomDAO.findAll());
         req.getRequestDispatcher("/reservation/modify.jsp").forward(req, resp);
     }

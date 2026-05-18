@@ -170,7 +170,7 @@
                              so it stays consistent with the tbody fix below. --%>
                         <% if (isStaff) { %><th>Guest ID</th><% } %>
                         <th>Room</th>
-                        <th>Check-In</th>
+                        <th>Check-In <span class="badge bg-light text-primary border border-primary ms-1" style="font-size:0.65rem;font-weight:600;" title="QuickSort — check-in date ascending"><i class="bi bi-sort-up"></i> sorted</span></th>
                         <th>Check-Out</th>
                         <th>Nights</th>
                         <th>Status</th>
