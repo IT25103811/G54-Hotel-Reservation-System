@@ -3,15 +3,7 @@ package com.hotel.model;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
-/**
- * Represents a hotel reservation.
- *
- * Improvements (Commit 1):
- *  - Added specialRequests field (non-breaking addition)
- *  - Added createdAt field for audit trail
- *  - Improved calculateCancellationFee() guard against null checkIn
- *  - Added getNights() helper method
- */
+
 public class Reservation {
 
     public enum Status {
@@ -42,21 +34,14 @@ public class Reservation {
         this.specialRequests = "";
     }
 
-    /**
-     * Number of nights between checkIn and checkOut; 0 if dates are invalid.
-     */
+
     public long getNights() {
         if (checkIn == null || checkOut == null) return 0;
         long n = ChronoUnit.DAYS.between(checkIn, checkOut);
         return Math.max(n, 0);
     }
 
-    /**
-     * Cancellation fee:
-     *   > 7 days before check-in  →  no fee
-     *   1–7 days before check-in  →  50 %
-     *   < 1 day  / past check-in  →  100 %
-     */
+
     public double calculateCancellationFee() {
         if (checkIn == null) return 0;
         long daysUntilCheckIn = ChronoUnit.DAYS.between(LocalDate.now(), checkIn);
