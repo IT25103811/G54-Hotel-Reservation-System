@@ -3,9 +3,7 @@ package com.hotel.model;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
-/**
- * Represents a hotel reservation.
- */
+
 public class Reservation {
 
     public enum Status {
@@ -19,6 +17,8 @@ public class Reservation {
     private LocalDate checkOut;
     private Status status;
     private double totalAmount;
+    private String specialRequests;  // NEW – optional, never null in serialisation
+    private String createdAt;        // NEW – ISO date string, set on first save
 
     public Reservation() {}
 
@@ -31,23 +31,26 @@ public class Reservation {
         this.checkOut = checkOut;
         this.status = status;
         this.totalAmount = totalAmount;
+        this.specialRequests = "";
     }
 
-    /**
-     * Calculates cancellation fee based on how far in advance the guest cancels.
-     * >7 days: no fee; 1-7 days: 50%; <1 day: 100%
-     */
+
+    public long getNights() {
+        if (checkIn == null || checkOut == null) return 0;
+        long n = ChronoUnit.DAYS.between(checkIn, checkOut);
+        return Math.max(n, 0);
+    }
+
+
     public double calculateCancellationFee() {
         if (checkIn == null) return 0;
         long daysUntilCheckIn = ChronoUnit.DAYS.between(LocalDate.now(), checkIn);
-        if (daysUntilCheckIn > 7) {
-            return 0;
-        } else if (daysUntilCheckIn >= 1) {
-            return totalAmount * 0.50;
-        } else {
-            return totalAmount;
-        }
+        if (daysUntilCheckIn > 7) return 0;
+        if (daysUntilCheckIn >= 1) return totalAmount * 0.50;
+        return totalAmount;
     }
+
+    // ── Getters / Setters ────────────────────────────────────────────────────
 
     public String getReservationId() { return reservationId; }
     public void setReservationId(String reservationId) { this.reservationId = reservationId; }
@@ -69,4 +72,10 @@ public class Reservation {
 
     public double getTotalAmount() { return totalAmount; }
     public void setTotalAmount(double totalAmount) { this.totalAmount = totalAmount; }
+
+    public String getSpecialRequests() { return specialRequests == null ? "" : specialRequests; }
+    public void setSpecialRequests(String specialRequests) { this.specialRequests = specialRequests; }
+
+    public String getCreatedAt() { return createdAt == null ? "" : createdAt; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
 }

@@ -13,7 +13,7 @@ public abstract class Review {
     private String hotelResponse;
 
     // Feedback & Review Management fields
-    private ReviewStatus status = ReviewStatus.PENDING;
+    //private ReviewStatus status = ReviewStatus.PENDING;
     private String moderatedBy;          // staffId who last changed the status
     private String moderationNote;       // internal staff note (not shown to public)
     private LocalDateTime moderatedAt;   // when the status was last changed
@@ -27,7 +27,7 @@ public abstract class Review {
         this.comment = comment;
         this.timestamp = timestamp;
         this.hotelResponse = hotelResponse;
-        this.status = ReviewStatus.PENDING;
+       // this.status = ReviewStatus.PENDING;
     }
 
     public abstract String getDisplayFormat();
@@ -52,8 +52,8 @@ public abstract class Review {
 
     // ── Moderation getters / setters ────────────────────────────────────────
 
-    public ReviewStatus getStatus() { return status != null ? status : ReviewStatus.PENDING; }
-    public void setStatus(ReviewStatus status) { this.status = status; }
+    //public ReviewStatus getStatus() { return status != null ? status : ReviewStatus.PENDING; }
+    //public void setStatus(ReviewStatus status) { this.status = status; }
 
     public String getModeratedBy() { return moderatedBy; }
     public void setModeratedBy(String moderatedBy) { this.moderatedBy = moderatedBy; }
@@ -65,7 +65,7 @@ public abstract class Review {
     public void setModeratedAt(LocalDateTime moderatedAt) { this.moderatedAt = moderatedAt; }
 
     /** Convenience: is this review visible to the public? */
-    public boolean isPubliclyVisible() {
-        return getStatus() == ReviewStatus.APPROVED;
+   // public boolean isPubliclyVisible() {
+     //   return getStatus() == ReviewStatus.APPROVED;
     }
-}
+//}
