@@ -125,12 +125,22 @@
 
 <div class="container py-5">
 
-    <!-- Success toast -->
+    <%-- Success toast --%>
     <% String success = (String) session.getAttribute("successMessage");
        if (success != null) {
            session.removeAttribute("successMessage"); %>
     <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
         <i class="bi bi-check-circle-fill me-2"></i><%= success %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <% } %>
+
+    <%-- Error toast --%>
+    <% String errMsg = (String) session.getAttribute("errorMessage");
+       if (errMsg != null) {
+           session.removeAttribute("errorMessage"); %>
+    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i><%= errMsg %>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     <% } %>
@@ -210,32 +220,80 @@
                                  the fmt taglib is declared at the top of this file. --%>
                             <td class="text-end amount-cell">$<fmt:formatNumber value="${res.totalAmount}" pattern="#,##0.00"/></td>
                             <td>
-                                <div class="d-flex gap-1">
+                                <div class="d-flex gap-1 flex-wrap">
+
+                                    <%-- View: always visible --%>
                                     <a href="${pageContext.request.contextPath}/reservations?action=view&reservationId=${res.reservationId}"
                                        class="btn btn-sm btn-outline-secondary action-btn" title="View Details">
                                         <i class="bi bi-eye"></i>
                                     </a>
+
+                                    <%-- Modify: staff only, non-terminal --%>
+                                    <% if (isStaff) { %>
                                     <c:if test="${res.status != 'CANCELLED' and res.status != 'CHECKED_OUT'}">
                                         <a href="${pageContext.request.contextPath}/reservations?action=modify&reservationId=${res.reservationId}"
                                            class="btn btn-sm btn-outline-primary action-btn" title="Modify">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <c:if test="${res.status != 'CHECKED_IN'}">
-                                            <a href="${pageContext.request.contextPath}/payments?action=checkout&reservationId=${res.reservationId}"
-                                               class="btn btn-sm btn-success action-btn" title="Pay">
-                                                <i class="bi bi-credit-card"></i>
-                                            </a>
-                                        </c:if>
+                                    </c:if>
+                                    <% } %>
+
+                                    <%-- Pay: PENDING only (guest or staff) --%>
+                                    <c:if test="${res.status == 'PENDING'}">
+                                        <a href="${pageContext.request.contextPath}/payments?action=checkout&reservationId=${res.reservationId}"
+                                           class="btn btn-sm btn-success action-btn" title="Make Payment">
+                                            <i class="bi bi-credit-card"></i> Pay
+                                        </a>
+                                    </c:if>
+
+                                    <%-- Check-In: staff only, CONFIRMED --%>
+                                    <% if (isStaff) { %>
+                                    <c:if test="${res.status == 'CONFIRMED'}">
+                                        <form action="${pageContext.request.contextPath}/reservations"
+                                              method="post" class="d-inline">
+                                            <input type="hidden" name="action" value="updateStatus">
+                                            <input type="hidden" name="reservationId" value="${res.reservationId}">
+                                            <input type="hidden" name="newStatus" value="CHECKED_IN">
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-info text-white action-btn"
+                                                    title="Check In Guest">
+                                                <i class="bi bi-door-open-fill"></i> Check-In
+                                            </button>
+                                        </form>
+                                    </c:if>
+
+                                    <%-- Check-Out: staff only, CHECKED_IN --%>
+                                    <c:if test="${res.status == 'CHECKED_IN'}">
+                                        <form action="${pageContext.request.contextPath}/reservations"
+                                              method="post" class="d-inline"
+                                              onsubmit="return confirm('Check out reservation ${res.reservationId}?')">
+                                            <input type="hidden" name="action" value="updateStatus">
+                                            <input type="hidden" name="reservationId" value="${res.reservationId}">
+                                            <input type="hidden" name="newStatus" value="CHECKED_OUT">
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-secondary action-btn"
+                                                    title="Check Out Guest">
+                                                <i class="bi bi-box-arrow-right"></i> Check-Out
+                                            </button>
+                                        </form>
+                                    </c:if>
+                                    <% } %>
+
+                                    <%-- Cancel: non-terminal states --%>
+                                    <c:if test="${res.status != 'CANCELLED' and res.status != 'CHECKED_OUT'}">
                                         <form action="${pageContext.request.contextPath}/reservations"
                                               method="post" class="d-inline"
                                               onsubmit="return confirmCancel('${res.reservationId}')">
                                             <input type="hidden" name="action" value="cancel">
                                             <input type="hidden" name="reservationId" value="${res.reservationId}">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger action-btn" title="Cancel">
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger action-btn"
+                                                    title="Cancel Reservation">
                                                 <i class="bi bi-x-lg"></i>
                                             </button>
                                         </form>
                                     </c:if>
+
                                 </div>
                             </td>
                         </tr>

@@ -4,8 +4,10 @@
     Reservation res = (Reservation) request.getAttribute("reservation");
     if (res == null) { response.sendRedirect(request.getContextPath() + "/reservations?action=list"); return; }
     boolean isStaff   = session.getAttribute("loggedInStaff") != null;
+    // After payment, CONFIRMED reservations cannot be edited by guests (only staff can)
     boolean isEditable = res.getStatus() != Reservation.Status.CANCELLED
-                      && res.getStatus() != Reservation.Status.CHECKED_OUT;
+                      && res.getStatus() != Reservation.Status.CHECKED_OUT
+                      && (isStaff || res.getStatus() != Reservation.Status.CONFIRMED);
     String statusCss   = res.getStatus().name();
     long nights        = res.getNights();
     String cancelFeeStr = String.format("%.2f", res.calculateCancellationFee());

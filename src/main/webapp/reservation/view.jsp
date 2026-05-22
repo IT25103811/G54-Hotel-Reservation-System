@@ -206,18 +206,84 @@
             <div class="card view-card">
                 <div class="card-body p-3">
                     <div class="d-grid gap-2">
-                        <% if (res.getStatus() != Reservation.Status.CANCELLED && res.getStatus() != Reservation.Status.CHECKED_OUT) { %>
-                        <a href="${pageContext.request.contextPath}/reservations?action=modify&reservationId=<%= res.getReservationId() %>"
-                           class="btn btn-hotel-primary">
-                            <i class="bi bi-pencil me-1"></i>Modify Reservation
-                        </a>
-                        <% if (res.getStatus() != Reservation.Status.CHECKED_IN) { %>
+
+                        <%-- Pay: PENDING only --%>
+                        <% if (res.getStatus() == Reservation.Status.PENDING) { %>
                         <a href="${pageContext.request.contextPath}/payments?action=checkout&reservationId=<%= res.getReservationId() %>"
                            class="btn btn-success">
                             <i class="bi bi-credit-card me-1"></i>Make Payment
                         </a>
                         <% } %>
+
+                        <%-- Admin actions --%>
+                        <% if (isStaff) { %>
+
+                            <%-- Modify: non-terminal --%>
+                            <% if (res.getStatus() != Reservation.Status.CANCELLED
+                                && res.getStatus() != Reservation.Status.CHECKED_OUT) { %>
+                            <a href="${pageContext.request.contextPath}/reservations?action=modify&reservationId=<%= res.getReservationId() %>"
+                               class="btn btn-hotel-primary">
+                                <i class="bi bi-pencil me-1"></i>Modify Reservation
+                            </a>
+                            <% } %>
+
+                            <%-- Check-In: CONFIRMED only --%>
+                            <% if (res.getStatus() == Reservation.Status.CONFIRMED) { %>
+                            <form action="${pageContext.request.contextPath}/reservations" method="post">
+                                <input type="hidden" name="action" value="updateStatus">
+                                <input type="hidden" name="reservationId" value="<%= res.getReservationId() %>">
+                                <input type="hidden" name="newStatus" value="CHECKED_IN">
+                                <button type="submit" class="btn btn-info text-white w-100">
+                                    <i class="bi bi-door-open-fill me-1"></i>Check-In Guest
+                                </button>
+                            </form>
+                            <% } %>
+
+                            <%-- Check-Out: CHECKED_IN only --%>
+                            <% if (res.getStatus() == Reservation.Status.CHECKED_IN) { %>
+                            <form action="${pageContext.request.contextPath}/reservations" method="post"
+                                  onsubmit="return confirm('Check out this guest?')">
+                                <input type="hidden" name="action" value="updateStatus">
+                                <input type="hidden" name="reservationId" value="<%= res.getReservationId() %>">
+                                <input type="hidden" name="newStatus" value="CHECKED_OUT">
+                                <button type="submit" class="btn btn-secondary w-100">
+                                    <i class="bi bi-box-arrow-right me-1"></i>Check-Out Guest
+                                </button>
+                            </form>
+                            <% } %>
+
+                            <%-- Cancel: any non-terminal state --%>
+                            <% if (res.getStatus() != Reservation.Status.CANCELLED
+                                && res.getStatus() != Reservation.Status.CHECKED_OUT) {
+                                String _cancelFeeStr = String.format("%.2f", res.calculateCancellationFee());
+                            %>
+                            <form action="${pageContext.request.contextPath}/reservations" method="post"
+                                  onsubmit="return confirm('Cancel reservation <%= res.getReservationId() %>?\nCancellation fee: $<%= _cancelFeeStr %>\n\nThis cannot be undone.')">
+                                <input type="hidden" name="action" value="cancel">
+                                <input type="hidden" name="reservationId" value="<%= res.getReservationId() %>">
+                                <button type="submit" class="btn btn-outline-danger w-100">
+                                    <i class="bi bi-x-circle me-1"></i>Cancel Reservation
+                                </button>
+                            </form>
+                            <% } %>
+
+                        <% } else { %>
+                            <%-- Guest actions: Modify (non-terminal, non-confirmed) --%>
+                            <%-- CONFIRMED means payment is done; guests cannot modify paid reservations --%>
+                            <% if (res.getStatus() != Reservation.Status.CANCELLED
+                                && res.getStatus() != Reservation.Status.CHECKED_OUT
+                                && res.getStatus() != Reservation.Status.CONFIRMED) { %>
+                            <a href="${pageContext.request.contextPath}/reservations?action=modify&reservationId=<%= res.getReservationId() %>"
+                               class="btn btn-hotel-primary">
+                                <i class="bi bi-pencil me-1"></i>Modify Reservation
+                            </a>
+                            <% } else if (res.getStatus() == Reservation.Status.CONFIRMED) { %>
+                            <div class="alert alert-info py-2 px-3 mb-0 small">
+                                <i class="bi bi-lock-fill me-1"></i>This reservation is confirmed and paid. Contact the front desk for changes.
+                            </div>
+                            <% } %>
                         <% } %>
+
                         <a href="${pageContext.request.contextPath}/reservations?action=list"
                            class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-left me-1"></i>Back to List
