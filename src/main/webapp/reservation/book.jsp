@@ -201,35 +201,35 @@
                         </div>
 
                         <!-- Step 2: Room -->
-                        <div class="step-title">
-                            <span class="step-badge">2</span> Select Room
-                        </div>
+                         <div class="step-title">
+                             <span class="step-badge">2</span> Select Room
+                         </div>
                         <div class="mb-4">
                             <label class="form-label fw-semibold">Available Rooms <span class="text-danger">*</span></label>
                             <select name="roomNumber" id="roomSelect" class="form-select" required
-                                    onchange="onRoomChange()">
+                                     onchange="onRoomChange()">
                                 <option value="">-- Choose a room --</option>
                                 <c:forEach var="room" items="${availableRooms}">
                                     <option value="${room.roomNumber}"
-                                            data-price="${room.calculatePrice()}"
-                                            data-type="${room.type}"
-                                            data-floor="${room.floor}"
-                                            data-amenities="${room.amenities}"
-                                            ${(not empty param.prevRoom and param.prevRoom == room.roomNumber) ? 'selected' : ''}>
-                                        Room ${room.roomNumber} &mdash; ${room.type}, Floor ${room.floor} &mdash; $<fmt:formatNumber value="${room.calculatePrice()}" pattern="#,##0.00" xmlns:fmt="http://java.sun.com/jsp/jstl/fmt"/> / night
-                                    </option>
+                                             data-price="${room.calculatePrice()}"
+                                             data-type="${room.type}"
+                                             data-floor="${room.floor}"
+                                             data-amenities="${room.amenities}"
+                                             ${(not empty param.prevRoom and param.prevRoom == room.roomNumber) ? 'selected' : ''}>
+                                         Room ${room.roomNumber} &mdash; ${room.type}, Floor ${room.floor} &mdash; $<fmt:formatNumber value="${room.calculatePrice()}" pattern="#,##0.00" xmlns:fmt="http://java.sun.com/jsp/jstl/fmt"/> / night
+                                     </option>
                                 </c:forEach>
                             </select>
                             <div id="roomDetails" class="mt-2 text-muted small" style="display:none;">
-                                <i class="bi bi-info-circle"></i> <span id="roomAmenities"></span>
+                                 <i class="bi bi-info-circle"></i> <span id="roomAmenities"></span>
                             </div>
                             <div class="invalid-feedback validation-feedback">Please select a room.</div>
                         </div>
 
                         <!-- Step 3: Dates -->
-                        <div class="step-title">
-                            <span class="step-badge">3</span> Stay Dates
-                        </div>
+                         <div class="step-title">
+                             <span class="step-badge">3</span> Stay Dates
+                         </div>
                         <div class="row g-3 mb-4">
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Check-In <span class="text-danger">*</span></label>
@@ -258,10 +258,10 @@
                         </div>
 
                         <!-- Step 4: Special Requests -->
-                        <div class="step-title">
-                            <span class="step-badge">4</span> Special Requests
-                            <span class="badge bg-secondary fw-normal ms-2" style="font-size:0.7rem;">Optional</span>
-                        </div>
+                         <div class="step-title">
+                             <span class="step-badge">4</span> Special Requests
+                             <span class="badge bg-secondary fw-normal ms-2" style="font-size:0.7rem;">Optional</span>
+                         </div>
                         <div class="mb-4">
                             <textarea name="specialRequests" id="specialRequests"
                                       class="form-control" rows="3" maxlength="300"
