@@ -47,40 +47,40 @@
   </div>
 
   <c:if test="${not empty rooms}">
-  <div class="card">
-    <div class="card-body p-0">
-      <table class="table table-hover table-hotel mb-0">
-        <thead>
+    <div class="card">
+      <div class="card-body p-0">
+        <table class="table table-hover table-hotel mb-0">
+          <thead>
           <tr>
             <th>Room #</th><th>Type</th><th>Floor</th><th>Price/Night</th>
             <th>Amenities</th><th>Status</th><th>Action</th>
           </tr>
-        </thead>
-        <tbody>
+          </thead>
+          <tbody>
           <c:forEach var="room" items="${rooms}">
-          <tr>
-            <td><strong>${room.roomNumber}</strong></td>
-            <td>${room.type}</td>
-            <td>${room.floor}</td>
-            <td class="text-success fw-bold">$${room.calculatePrice()}</td>
-            <td class="small">${room.amenities}</td>
-            <td>
+            <tr>
+              <td><strong>${room.roomNumber}</strong></td>
+              <td>${room.type}</td>
+              <td>${room.floor}</td>
+              <td class="text-success fw-bold">$${room.calculatePrice()}</td>
+              <td class="small">${room.amenities}</td>
+              <td>
               <span class="badge ${room.available ? 'bg-success' : 'bg-danger'}">
-                ${room.available ? 'Available' : 'Occupied'}
+                  ${room.available ? 'Available' : 'Occupied'}
               </span>
-            </td>
-            <td>
-              <c:if test="${room.available}">
-              <a href="${pageContext.request.contextPath}/reservations?action=book"
-                 class="btn btn-sm btn-hotel-primary">Book</a>
-              </c:if>
-            </td>
-          </tr>
+              </td>
+              <td>
+                <c:if test="${room.available}">
+                  <a href="${pageContext.request.contextPath}/reservations?action=book"
+                     class="btn btn-sm btn-hotel-primary">Book</a>
+                </c:if>
+              </td>
+            </tr>
           </c:forEach>
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
   </c:if>
 
   <c:if test="${empty rooms and not empty param.action}">
