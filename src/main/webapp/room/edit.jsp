@@ -1,10 +1,10 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="com.hotel.model.*" %>
 <%
-    Room room = (Room) request.getAttribute("room");
-    if (room == null) { response.sendRedirect(request.getContextPath() + "/rooms?action=list"); return; }
-    boolean isSuite = room instanceof SuiteRoom;
-    boolean jacuzzi = isSuite && ((SuiteRoom)room).isHasJacuzzi();
+  Room room = (Room) request.getAttribute("room");
+  if (room == null) { response.sendRedirect(request.getContextPath() + "/rooms?action=list"); return; }
+  boolean isSuite = room instanceof SuiteRoom;
+  boolean jacuzzi = isSuite && ((SuiteRoom)room).isHasJacuzzi();
 %>
 <!DOCTYPE html>
 <html lang="en">
