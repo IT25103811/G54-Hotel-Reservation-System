@@ -1,5 +1,7 @@
 package com.hotel.servlet;
 
+import com.hotel.service.ReservationService;
+import com.hotel.service.RoomService;
 import com.hotel.dao.*;
 import com.hotel.model.*;
 import javax.servlet.*;
@@ -17,9 +19,8 @@ import java.util.List;
 public class ReservationServlet extends HttpServlet {
 
 
-    private final IReservationRepository reservationDAO = new ReservationDAO();
-
-    private final RoomDAO  roomDAO  = new RoomDAO();
+    private final ReservationService reservationService = new ReservationService();
+    private final RoomService roomService = new RoomService();
     private final GuestDAO guestDAO = new GuestDAO();
 
     // GET =====================================================================
@@ -51,9 +52,10 @@ public class ReservationServlet extends HttpServlet {
         if (action == null) action = "";
         try {
             switch (action) {
-                case "book":   handleBook(req, resp);   break;
-                case "modify": handleModify(req, resp); break;
-                case "cancel": handleCancel(req, resp); break;
+                case "book":         handleBook(req, resp);         break;
+                case "modify":       handleModify(req, resp);       break;
+                case "cancel":       handleCancel(req, resp);       break;
+                case "updateStatus": handleUpdateStatus(req, resp); break;
                 default:
                     resp.sendRedirect(req.getContextPath() + "/reservations?action=list");
             }
@@ -70,10 +72,10 @@ public class ReservationServlet extends HttpServlet {
         List<Reservation> reservations;
 
         if (session != null && session.getAttribute("loggedInStaff") != null) {
-            reservations = reservationDAO.findAll();
+            reservations = reservationService.getAllReservations();
         } else if (session != null && session.getAttribute("loggedInGuest") != null) {
             Guest guest = (Guest) session.getAttribute("loggedInGuest");
-            reservations = reservationDAO.findByGuestId(guest.getId());
+            reservations = reservationService.getReservationsByGuest(guest.getId());
         } else {
             resp.sendRedirect(req.getContextPath() + "/guests?action=login");
             return;
@@ -121,13 +123,13 @@ public class ReservationServlet extends HttpServlet {
                 return;
             }
 
-            String  excl    = excludeId.isEmpty() ? null : excludeId;
-            boolean overlap = reservationDAO.checkDateOverlap(roomNumber, checkIn, checkOut, excl);
+            String excl = excludeId.isEmpty() ? null : excludeId;
+            boolean available = reservationService.isRoomAvailableForDates(roomNumber, checkIn, checkOut, excl);
 
-            if (overlap) {
-                out.print("{\"available\":false,\"message\":\"Room is already booked for selected dates.\"}");
-            } else {
+            if (available) {
                 out.print("{\"available\":true}");
+            } else {
+                out.print("{\"available\":false,\"message\":\"Room is already booked for selected dates.\"}");
             }
         } catch (DateTimeParseException e) {
             out.print("{\"available\":false,\"message\":\"Invalid date format.\"}");
@@ -136,7 +138,7 @@ public class ReservationServlet extends HttpServlet {
 
     private void handleBookForm(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        req.setAttribute("availableRooms", roomDAO.findAll());
+        req.setAttribute("availableRooms", roomService.getAllRooms());
         req.getRequestDispatcher("/reservation/book.jsp").forward(req, resp);
     }
 
@@ -152,39 +154,48 @@ public class ReservationServlet extends HttpServlet {
         }
 
         String id       = req.getParameter("reservationId");
-        Reservation res = reservationDAO.findById(id);
-        if (res == null) {
-            req.setAttribute("errorMessage", "Reservation not found (ID: " + id + ").");
-            req.getRequestDispatcher("/WEB-INF/error.jsp").forward(req, resp);
-            return;
-        }
-
-        if (session.getAttribute("loggedInStaff") == null) {
-            Guest loggedGuest = (Guest) session.getAttribute("loggedInGuest");
-            if (loggedGuest == null || !loggedGuest.getId().equals(res.getGuestId())) {
-                resp.sendRedirect(req.getContextPath() + "/reservations?action=list");
+        try {
+            Reservation res = reservationService.getReservationById(id);
+            if (res == null) {
+                req.setAttribute("errorMessage", "Reservation not found (ID: " + id + ").");
+                req.getRequestDispatcher("/WEB-INF/error.jsp").forward(req, resp);
                 return;
             }
-        }
 
-        req.setAttribute("reservation", res);
-        req.setAttribute("availableRooms", roomDAO.findAll());
-        req.getRequestDispatcher("/reservation/modify.jsp").forward(req, resp);
+            if (session.getAttribute("loggedInStaff") == null) {
+                Guest loggedGuest = (Guest) session.getAttribute("loggedInGuest");
+                if (loggedGuest == null || !loggedGuest.getId().equals(res.getGuestId())) {
+                    resp.sendRedirect(req.getContextPath() + "/reservations?action=list");
+                    return;
+                }
+            }
+
+            req.setAttribute("reservation", res);
+            req.setAttribute("availableRooms", roomService.getAllRooms());
+            req.getRequestDispatcher("/reservation/modify.jsp").forward(req, resp);
+        } catch (IllegalArgumentException e) {
+            req.setAttribute("errorMessage", e.getMessage());
+            req.getRequestDispatcher("/WEB-INF/error.jsp").forward(req, resp);
+        }
     }
 
     private void handleView(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        String id       = req.getParameter("reservationId");
-        Reservation res = reservationDAO.findById(id);
-        if (res == null) {
+        String id = req.getParameter("reservationId");
+        try {
+            Reservation res = reservationService.getReservationById(id);
+            if (res == null) {
+                resp.sendRedirect(req.getContextPath() + "/reservations?action=list");
+                return;
+            }
+            Guest guest = guestDAO.findById(res.getGuestId());
+            req.setAttribute("reservation", res);
+            req.setAttribute("guestName", guest != null ? guest.getName() : res.getGuestId());
+            req.setAttribute("cancellationFee", res.calculateCancellationFee());
+            req.getRequestDispatcher("/reservation/view.jsp").forward(req, resp);
+        } catch (IllegalArgumentException e) {
             resp.sendRedirect(req.getContextPath() + "/reservations?action=list");
-            return;
         }
-        Guest guest = guestDAO.findById(res.getGuestId());
-        req.setAttribute("reservation", res);
-        req.setAttribute("guestName",       guest != null ? guest.getName() : res.getGuestId());
-        req.setAttribute("cancellationFee", res.calculateCancellationFee());
-        req.getRequestDispatcher("/reservation/view.jsp").forward(req, resp);
     }
 
     // Handlers: POST ==========================================================
@@ -212,59 +223,19 @@ public class ReservationServlet extends HttpServlet {
             return;
         }
 
-        if (!checkIn.isAfter(LocalDate.now().minusDays(1))) {
-            bookError(req, resp, "Check-in date must be today or in the future.");
-            return;
-        }
-        long nights = ChronoUnit.DAYS.between(checkIn, checkOut);
-        if (nights <= 0) {
-            bookError(req, resp, "Check-out date must be after check-in date.");
-            return;
-        }
-        if (nights > 90) {
-            bookError(req, resp, "Reservations cannot exceed 90 nights. Please contact us for extended stays.");
-            return;
-        }
+        try {
+            Reservation reservation = reservationService.createReservation(
+                    guestId, roomNumber, checkIn, checkOut, specialReqs
+            );
 
-        Room  room  = roomDAO.findByNumber(roomNumber);
-        Guest guest = guestDAO.findById(guestId);
-
-        if (room == null) {
-            bookError(req, resp, "Selected room does not exist.");
-            return;
+            long nights = reservation.getNights();
+            req.getSession().setAttribute("successMessage",
+                    "Reservation " + reservation.getReservationId() + " confirmed for room " + roomNumber
+                            + " (" + nights + " night" + (nights > 1 ? "s" : "") + ")!");
+            resp.sendRedirect(req.getContextPath() + "/reservations?action=list");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            bookError(req, resp, e.getMessage());
         }
-        if (guest == null) {
-            bookError(req, resp, "Guest ID not found. Please log in or enter a valid Guest ID.");
-            return;
-        }
-
-        if (reservationDAO.checkDateOverlap(roomNumber, checkIn, checkOut, null)) {
-            bookError(req, resp,
-                    "Room " + roomNumber + " is already booked for the selected dates. "
-                            + "Please choose different dates or another room.");
-            return;
-        }
-
-        if (reservationDAO.countActiveByGuest(guestId) >= 5) {
-            bookError(req, resp,
-                    "You already have 5 active reservations. "
-                            + "Please complete or cancel an existing reservation before making a new one.");
-            return;
-        }
-
-        double totalAmount = room.calculatePrice() * nights * (1 - guest.calculateDiscount());
-
-        String id = FileUtils.generateId("R");
-        Reservation reservation = new Reservation(
-                id, guestId, roomNumber, checkIn, checkOut,
-                Reservation.Status.CONFIRMED, totalAmount);
-        reservation.setSpecialRequests(specialReqs);
-        reservationDAO.save(reservation);
-
-        req.getSession().setAttribute("successMessage",
-                "Reservation " + id + " confirmed for room " + roomNumber
-                        + " (" + nights + " night" + (nights > 1 ? "s" : "") + ")!");
-        resp.sendRedirect(req.getContextPath() + "/reservations?action=list");
     }
 
     private void handleModify(HttpServletRequest req, HttpServletResponse resp)
@@ -278,116 +249,182 @@ public class ReservationServlet extends HttpServlet {
             return;
         }
 
-        String resId    = trim(req.getParameter("reservationId"));
-        Reservation res = reservationDAO.findById(resId);
-        if (res == null) {
-            resp.sendRedirect(req.getContextPath() + "/reservations?action=list");
-            return;
-        }
-
-        if (session.getAttribute("loggedInStaff") == null) {
-            Guest loggedGuest = (Guest) session.getAttribute("loggedInGuest");
-            if (loggedGuest == null || !loggedGuest.getId().equals(res.getGuestId())) {
+        String resId = trim(req.getParameter("reservationId"));
+        try {
+            Reservation res = reservationService.getReservationById(resId);
+            if (res == null) {
                 resp.sendRedirect(req.getContextPath() + "/reservations?action=list");
                 return;
             }
-        }
 
-        if (res.getStatus() == Reservation.Status.CANCELLED
-                || res.getStatus() == Reservation.Status.CHECKED_OUT) {
-            req.setAttribute("reservation", res);
-            req.setAttribute("error", "Cannot modify a " + res.getStatus().name().toLowerCase() + " reservation.");
-            req.setAttribute("availableRooms", roomDAO.findAll());
-            req.getRequestDispatcher("/reservation/modify.jsp").forward(req, resp);
-            return;
-        }
-
-        String checkInStr  = trim(req.getParameter("checkIn"));
-        String checkOutStr = trim(req.getParameter("checkOut"));
-        String statusStr   = trim(req.getParameter("status"));
-        String specialReqs = trim(req.getParameter("specialRequests"));
-
-        if (!checkInStr.isEmpty() && !checkOutStr.isEmpty()) {
-            LocalDate newIn, newOut;
-            try {
-                newIn  = LocalDate.parse(checkInStr);
-                newOut = LocalDate.parse(checkOutStr);
-            } catch (DateTimeParseException e) {
-                modifyError(req, resp, res, "Invalid date format.");
-                return;
-            }
-
-            if (newIn.isBefore(LocalDate.now())) {
-                modifyError(req, resp, res, "Check-in date cannot be in the past.");
-                return;
-            }
-
-            long nights = ChronoUnit.DAYS.between(newIn, newOut);
-            if (nights <= 0) {
-                modifyError(req, resp, res, "Check-out must be after check-in.");
-                return;
-            }
-            if (nights > 90) {
-                modifyError(req, resp, res, "Reservations cannot exceed 90 nights.");
-                return;
-            }
-
-            if (reservationDAO.checkDateOverlap(res.getRoomNumber(), newIn, newOut, resId)) {
-                modifyError(req, resp, res,
-                        "Room is already booked for selected dates. Please choose different dates.");
-                return;
-            }
-
-            if (reservationDAO.checkDuplicateGuestRoomBooking(
-                    res.getGuestId(), res.getRoomNumber(), newIn, newOut, resId)) {
-                modifyError(req, resp, res,
-                        "You already have another reservation for this room overlapping the selected dates.");
-                return;
-            }
-
-            Room room = roomDAO.findByNumber(res.getRoomNumber());
-            if (room != null) {
-                Guest guest     = guestDAO.findById(res.getGuestId());
-                double discount = guest != null ? guest.calculateDiscount() : 0;
-                res.setTotalAmount(room.calculatePrice() * nights * (1 - discount));
-            }
-            res.setCheckIn(newIn);
-            res.setCheckOut(newOut);
-        }
-
-        if (!statusStr.isEmpty() && session.getAttribute("loggedInStaff") != null) {
-            try {
-                Reservation.Status newStatus = Reservation.Status.valueOf(statusStr);
-                if ((newStatus == Reservation.Status.CHECKED_OUT
-                        || newStatus == Reservation.Status.CANCELLED)
-                        && res.getStatus() != newStatus) {
-                    Room room = roomDAO.findByNumber(res.getRoomNumber());
-                    if (room != null) { room.setAvailable(true); roomDAO.update(room); }
+            if (session.getAttribute("loggedInStaff") == null) {
+                Guest loggedGuest = (Guest) session.getAttribute("loggedInGuest");
+                if (loggedGuest == null || !loggedGuest.getId().equals(res.getGuestId())) {
+                    resp.sendRedirect(req.getContextPath() + "/reservations?action=list");
+                    return;
                 }
-                res.setStatus(newStatus);
-            } catch (IllegalArgumentException ignored) {}
+            }
+
+            if (res.getStatus() == Reservation.Status.CANCELLED
+                    || res.getStatus() == Reservation.Status.CHECKED_OUT) {
+                req.setAttribute("reservation", res);
+                req.setAttribute("error", "Cannot modify a " + res.getStatus().name().toLowerCase() + " reservation.");
+                req.setAttribute("availableRooms", roomService.getAllRooms());
+                req.getRequestDispatcher("/reservation/modify.jsp").forward(req, resp);
+                return;
+            }
+
+            // After payment, CONFIRMED reservations cannot be edited by guests
+            boolean isStaffSession = session.getAttribute("loggedInStaff") != null;
+            if (!isStaffSession && res.getStatus() == Reservation.Status.CONFIRMED) {
+                req.setAttribute("reservation", res);
+                req.setAttribute("error", "This reservation has been confirmed and paid. It cannot be modified. Please contact the front desk for changes.");
+                req.setAttribute("availableRooms", roomService.getAllRooms());
+                req.getRequestDispatcher("/reservation/modify.jsp").forward(req, resp);
+                return;
+            }
+
+            String checkInStr  = trim(req.getParameter("checkIn"));
+            String checkOutStr = trim(req.getParameter("checkOut"));
+            String statusStr   = trim(req.getParameter("status"));
+            String specialReqs = trim(req.getParameter("specialRequests"));
+
+            if (!checkInStr.isEmpty() && !checkOutStr.isEmpty()) {
+                LocalDate newIn, newOut;
+                try {
+                    newIn  = LocalDate.parse(checkInStr);
+                    newOut = LocalDate.parse(checkOutStr);
+                } catch (DateTimeParseException e) {
+                    modifyError(req, resp, res, "Invalid date format.");
+                    return;
+                }
+
+                if (newIn.isBefore(LocalDate.now())) {
+                    modifyError(req, resp, res, "Check-in date cannot be in the past.");
+                    return;
+                }
+
+                long nights = ChronoUnit.DAYS.between(newIn, newOut);
+                if (nights <= 0) {
+                    modifyError(req, resp, res, "Check-out must be after check-in.");
+                    return;
+                }
+                if (nights > 365) {
+                    modifyError(req, resp, res, "Reservations cannot exceed 365 nights.");
+                    return;
+                }
+
+                if (!reservationService.isRoomAvailableForDates(res.getRoomNumber(), newIn, newOut, resId)) {
+                    modifyError(req, resp, res, "Room is already booked for selected dates. Please choose different dates.");
+                    return;
+                }
+
+                Room room = roomService.getRoomByNumber(res.getRoomNumber());
+                if (room != null) {
+                    Guest guest = guestDAO.findById(res.getGuestId());
+                    double discount = guest != null ? guest.calculateDiscount() : 0;
+                    res.setTotalAmount(room.calculatePrice() * nights * (1 - discount));
+                }
+                res.setCheckIn(newIn);
+                res.setCheckOut(newOut);
+            }
+
+            if (!statusStr.isEmpty() && session.getAttribute("loggedInStaff") != null) {
+                try {
+                    Reservation.Status newStatus = Reservation.Status.valueOf(statusStr);
+                    res.setStatus(newStatus);
+                } catch (IllegalArgumentException ignored) {}
+            }
+
+            if (!specialReqs.isEmpty()) res.setSpecialRequests(specialReqs);
+
+            reservationService.updateReservation(res);
+            req.getSession().setAttribute("successMessage", "Reservation updated successfully.");
+            resp.sendRedirect(req.getContextPath() + "/reservations?action=list");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            req.setAttribute("errorMessage", e.getMessage());
+            req.getRequestDispatcher("/WEB-INF/error.jsp").forward(req, resp);
         }
-
-        if (!specialReqs.isEmpty()) res.setSpecialRequests(specialReqs);
-
-        reservationDAO.update(res);
-        req.getSession().setAttribute("successMessage", "Reservation updated successfully.");
-        resp.sendRedirect(req.getContextPath() + "/reservations?action=list");
     }
 
     private void handleCancel(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
-        String resId    = trim(req.getParameter("reservationId"));
-        Reservation res = reservationDAO.findById(resId);
-        if (res != null
-                && res.getStatus() != Reservation.Status.CANCELLED
-                && res.getStatus() != Reservation.Status.CHECKED_OUT) {
-            res.setStatus(Reservation.Status.CANCELLED);
-            reservationDAO.update(res);
-            Room room = roomDAO.findByNumber(res.getRoomNumber());
-            if (room != null) { room.setAvailable(true); roomDAO.update(room); }
+        String resId = trim(req.getParameter("reservationId"));
+        try {
+            reservationService.cancelReservation(resId);
             req.getSession().setAttribute("successMessage",
                     "Reservation " + resId + " has been cancelled.");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            req.getSession().setAttribute("errorMessage", e.getMessage());
+        }
+        resp.sendRedirect(req.getContextPath() + "/reservations?action=list");
+    }
+
+    /**
+     * Staff-only: perform a controlled status transition (CHECK_IN, CHECK_OUT, CANCELLED).
+     * Validates the transition is legal before applying it.
+     */
+    private void handleUpdateStatus(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        // Staff only
+        HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("loggedInStaff") == null) {
+            resp.sendRedirect(req.getContextPath() + "/staff?action=login");
+            return;
+        }
+
+        String resId     = trim(req.getParameter("reservationId"));
+        String statusStr = trim(req.getParameter("newStatus"));
+
+        try {
+            Reservation res = reservationService.getReservationById(resId);
+            if (res == null) {
+                req.getSession().setAttribute("errorMessage", "Reservation not found: " + resId);
+                resp.sendRedirect(req.getContextPath() + "/reservations?action=list");
+                return;
+            }
+
+            Reservation.Status newStatus;
+            try {
+                newStatus = Reservation.Status.valueOf(statusStr);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Unknown status: " + statusStr);
+            }
+
+            // Enforce valid transitions
+            Reservation.Status current = res.getStatus();
+            boolean valid = false;
+            switch (newStatus) {
+                case CHECKED_IN:
+                    valid = (current == Reservation.Status.CONFIRMED);
+                    if (!valid) throw new IllegalStateException(
+                            "Check-In is only allowed for CONFIRMED reservations (current: " + current + ").");
+                    break;
+                case CHECKED_OUT:
+                    valid = (current == Reservation.Status.CHECKED_IN);
+                    if (!valid) throw new IllegalStateException(
+                            "Check-Out is only allowed for CHECKED_IN reservations (current: " + current + ").");
+                    break;
+                case CANCELLED:
+                    valid = (current != Reservation.Status.CANCELLED
+                            && current != Reservation.Status.CHECKED_OUT);
+                    if (!valid) throw new IllegalStateException(
+                            "Cannot cancel a " + current.name().toLowerCase() + " reservation.");
+                    break;
+                default:
+                    throw new IllegalArgumentException(
+                            "Use the modify form for other status changes.");
+            }
+
+            res.setStatus(newStatus);
+            reservationService.updateReservation(res);
+
+            String label = newStatus.name().replace("_", "-");
+            req.getSession().setAttribute("successMessage",
+                    "Reservation " + resId + " successfully updated to " + label + ".");
+
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            req.getSession().setAttribute("errorMessage", e.getMessage());
         }
         resp.sendRedirect(req.getContextPath() + "/reservations?action=list");
     }
@@ -397,7 +434,7 @@ public class ReservationServlet extends HttpServlet {
     private void bookError(HttpServletRequest req, HttpServletResponse resp, String msg)
             throws ServletException, IOException {
         req.setAttribute("error",          msg);
-        req.setAttribute("availableRooms", roomDAO.findAll());
+        req.setAttribute("availableRooms", roomService.getAllRooms());
         req.setAttribute("prevGuestId",    req.getParameter("guestId"));
         req.setAttribute("prevRoom",       req.getParameter("roomNumber"));
         req.setAttribute("prevCheckIn",    req.getParameter("checkIn"));
@@ -411,7 +448,7 @@ public class ReservationServlet extends HttpServlet {
             throws ServletException, IOException {
         req.setAttribute("reservation",    res);
         req.setAttribute("error",          msg);
-        req.setAttribute("availableRooms", roomDAO.findAll());
+        req.setAttribute("availableRooms", roomService.getAllRooms());
         req.getRequestDispatcher("/reservation/modify.jsp").forward(req, resp);
     }
 
