@@ -1,43 +1,44 @@
 package com.hotel.servlet;
 
-import com.hotel.dao.*;
+import com.hotel.dao.RoomDAO;
 import com.hotel.model.*;
 import javax.servlet.*;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
-@WebServlet("/reviews")
-public class ReviewServlet extends HttpServlet {
+@WebServlet("/rooms")
+public class RoomServlet extends HttpServlet {
 
-    private final ReviewDAO reviewDAO = new ReviewDAO();
+    private final RoomDAO roomDAO = new RoomDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         String action = req.getParameter("action");
-        if (action == null) action = "view";
+        if (action == null) action = "list";
         try {
             switch (action) {
-                case "submit":
-                    req.getRequestDispatcher("/review/submit.jsp").forward(req, resp);
+                case "add":
+                    requireStaffLogin(req, resp);
+                    if (!resp.isCommitted()) req.getRequestDispatcher("/room/add.jsp").forward(req, resp);
                     break;
                 case "edit":
-                    Review r = reviewDAO.findById(req.getParameter("reviewId"));
-                    req.setAttribute("review", r);
-                    req.getRequestDispatcher("/review/submit.jsp").forward(req, resp);
-                    break;
-                case "moderate":
                     requireStaffLogin(req, resp);
                     if (!resp.isCommitted()) {
-                        req.setAttribute("reviews", reviewDAO.findAll());
-                        req.getRequestDispatcher("/review/moderate.jsp").forward(req, resp);
+                        Room room = roomDAO.findByNumber(req.getParameter("roomNumber"));
+                        req.setAttribute("room", room);
+                        req.getRequestDispatcher("/room/edit.jsp").forward(req, resp);
                     }
                     break;
+                case "search":
+                    handleSearch(req, resp);
+                    break;
                 default:
-                    req.setAttribute("reviews", reviewDAO.findAll());
-                    req.getRequestDispatcher("/review/view.jsp").forward(req, resp);
+                    req.setAttribute("rooms", roomDAO.findAll());
+                    req.getRequestDispatcher("/room/list.jsp").forward(req, resp);
             }
         } catch (Exception e) {
             handleError(req, resp, e);
@@ -51,72 +52,92 @@ public class ReviewServlet extends HttpServlet {
         if (action == null) action = "";
         try {
             switch (action) {
-                case "submit":
-                    handleSubmit(req, resp);
+                case "add":
+                    requireStaffLogin(req, resp);
+                    if (!resp.isCommitted()) handleAdd(req, resp);
                     break;
                 case "edit":
-                    handleEdit(req, resp);
+                    requireStaffLogin(req, resp);
+                    if (!resp.isCommitted()) handleEdit(req, resp);
                     break;
                 case "delete":
                     requireStaffLogin(req, resp);
                     if (!resp.isCommitted()) {
-                        reviewDAO.delete(req.getParameter("reviewId"));
-                        resp.sendRedirect(req.getContextPath() + "/reviews?action=moderate");
+                        roomDAO.delete(req.getParameter("roomNumber"));
+                        resp.sendRedirect(req.getContextPath() + "/rooms?action=list");
                     }
                     break;
-                case "moderate":
-                    requireStaffLogin(req, resp);
-                    if (!resp.isCommitted()) handleModerate(req, resp);
-                    break;
                 default:
-                    resp.sendRedirect(req.getContextPath() + "/reviews?action=view");
+                    resp.sendRedirect(req.getContextPath() + "/rooms?action=list");
             }
         } catch (Exception e) {
             handleError(req, resp, e);
         }
     }
 
-    private void handleSubmit(HttpServletRequest req, HttpServletResponse resp)
+    private void handleSearch(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        String type = req.getParameter("type");
+        String maxPriceStr = req.getParameter("maxPrice");
+        String availableStr = req.getParameter("available");
+
+        List<Room> rooms = roomDAO.findAll();
+        if (type != null && !type.isEmpty()) {
+            rooms = rooms.stream().filter(r -> type.equalsIgnoreCase(r.getType())).collect(Collectors.toList());
+        }
+        if (maxPriceStr != null && !maxPriceStr.isEmpty()) {
+            try {
+                double max = Double.parseDouble(maxPriceStr);
+                rooms = rooms.stream().filter(r -> r.calculatePrice() <= max).collect(Collectors.toList());
+            } catch (NumberFormatException ignored) {}
+        }
+        if ("true".equals(availableStr)) {
+            rooms = rooms.stream().filter(Room::isAvailable).collect(Collectors.toList());
+        }
+        req.setAttribute("rooms", rooms);
+        req.getRequestDispatcher("/room/search.jsp").forward(req, resp);
+    }
+
+    private void handleAdd(HttpServletRequest req, HttpServletResponse resp)
             throws IOException, ServletException {
-        int rating = parseInt(req.getParameter("rating"));
-        String comment = req.getParameter("comment");
-        boolean anonymous = "on".equals(req.getParameter("anonymous"));
-        String alias = req.getParameter("alias");
-        String id = FileUtils.generateId("RV");
+        String roomNumber = req.getParameter("roomNumber");
+        String type = req.getParameter("type");
+        double price = parseDouble(req.getParameter("price"));
+        String amenities = req.getParameter("amenities");
+        int floor = parseInt(req.getParameter("floor"));
+        String roomClass = req.getParameter("roomClass");
+        boolean jacuzzi = "on".equals(req.getParameter("hasJacuzzi"));
 
-        HttpSession session = req.getSession(false);
-        Review review;
-        if (!anonymous && session != null && session.getAttribute("loggedInGuest") != null) {
-            Guest guest = (Guest) session.getAttribute("loggedInGuest");
-            String resId = req.getParameter("reservationId");
-            review = new VerifiedGuestReview(id, rating, comment, LocalDateTime.now(),
-                    null, guest.getId(), guest.getName(), resId);
+        if (roomDAO.findByNumber(roomNumber) != null) {
+            req.setAttribute("error", "Room number already exists.");
+            req.getRequestDispatcher("/room/add.jsp").forward(req, resp);
+            return;
+        }
+        Room room;
+        if ("SUITE".equals(roomClass)) {
+            room = new SuiteRoom(roomNumber, type, price, amenities, true, floor, jacuzzi);
         } else {
-            review = new AnonymousReview(id, rating, comment, LocalDateTime.now(),
-                    null, alias != null && !alias.isEmpty() ? alias : "Anonymous");
+            room = new StandardRoom(roomNumber, type, price, amenities, true, floor);
         }
-        reviewDAO.save(review);
-        resp.sendRedirect(req.getContextPath() + "/reviews?action=view");
+        roomDAO.save(room);
+        resp.sendRedirect(req.getContextPath() + "/rooms?action=list");
     }
 
-    private void handleEdit(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String reviewId = req.getParameter("reviewId");
-        Review review = reviewDAO.findById(reviewId);
-        if (review == null) { resp.sendRedirect(req.getContextPath() + "/reviews?action=view"); return; }
-        review.setRating(parseInt(req.getParameter("rating")));
-        review.setComment(req.getParameter("comment"));
-        reviewDAO.update(review);
-        resp.sendRedirect(req.getContextPath() + "/reviews?action=view");
-    }
-
-    private void handleModerate(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String reviewId = req.getParameter("reviewId");
-        Review review = reviewDAO.findById(reviewId);
-        if (review != null) {
-            review.setHotelResponse(req.getParameter("hotelResponse"));
-            reviewDAO.update(review);
+    private void handleEdit(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        String roomNumber = req.getParameter("roomNumber");
+        Room existing = roomDAO.findByNumber(roomNumber);
+        if (existing == null) { resp.sendRedirect(req.getContextPath() + "/rooms?action=list"); return; }
+        existing.setType(req.getParameter("type"));
+        existing.setPrice(parseDouble(req.getParameter("price")));
+        existing.setAmenities(req.getParameter("amenities"));
+        existing.setFloor(parseInt(req.getParameter("floor")));
+        existing.setAvailable("true".equals(req.getParameter("available")));
+        if (existing instanceof SuiteRoom) {
+            ((SuiteRoom) existing).setHasJacuzzi("on".equals(req.getParameter("hasJacuzzi")));
         }
-        resp.sendRedirect(req.getContextPath() + "/reviews?action=moderate");
+        roomDAO.update(existing);
+        resp.sendRedirect(req.getContextPath() + "/rooms?action=list");
     }
 
     private void requireStaffLogin(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -132,5 +153,6 @@ public class ReviewServlet extends HttpServlet {
         req.getRequestDispatcher("/WEB-INF/error.jsp").forward(req, resp);
     }
 
-    private int parseInt(String s) { try { return Integer.parseInt(s.trim()); } catch (Exception e) { return 3; } }
+    private double parseDouble(String s) { try { return Double.parseDouble(s.trim()); } catch (Exception e) { return 0; } }
+    private int parseInt(String s) { try { return Integer.parseInt(s.trim()); } catch (Exception e) { return 0; } }
 }
