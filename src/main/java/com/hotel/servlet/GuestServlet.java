@@ -6,6 +6,8 @@ import javax.servlet.*;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
+import com.hotel.util.GuestSorter;
+import java.util.List;
 
 @WebServlet("/guests")
 public class GuestServlet extends HttpServlet {
@@ -29,7 +31,12 @@ public class GuestServlet extends HttpServlet {
                 case "list":
                     requireStaffLogin(req, resp);
                     if (!resp.isCommitted()) {
-                        req.setAttribute("guests", guestDAO.findAll());
+                        String sortParam = req.getParameter("sort");
+                        GuestSorter.SortBy sortBy = parseGuestSort(sortParam);
+                        List<Guest> guests = guestDAO.findAll();
+                        guests = GuestSorter.sort(guests, sortBy);
+                        req.setAttribute("guests", guests);
+                        req.setAttribute("sort", sortParam == null ? "name" : sortParam.toLowerCase());
                         req.getRequestDispatcher("/guest/list.jsp").forward(req, resp);
                     }
                     break;
@@ -191,6 +198,22 @@ public class GuestServlet extends HttpServlet {
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("loggedInStaff") == null) {
             resp.sendRedirect(req.getContextPath() + "/staff?action=login");
+        }
+    }
+    private GuestSorter.SortBy parseGuestSort(String sort) {
+        if (sort == null) return GuestSorter.SortBy.NAME;
+        switch (sort.toLowerCase()) {
+            case "points":
+                return GuestSorter.SortBy.LOYALTY_POINTS;
+            case "type":
+                return GuestSorter.SortBy.TYPE;
+            case "email":
+                return GuestSorter.SortBy.EMAIL;
+            case "id":
+                return GuestSorter.SortBy.ID;
+            case "name":
+            default:
+                return GuestSorter.SortBy.NAME;
         }
     }
 
