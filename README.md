@@ -138,16 +138,16 @@ G54-Hotel-Reservation-System/
 
 ### Features
 
-✅ Staff Login with email & password
-✅ Role-based access control (Manager vs Receptionist)
-✅ Staff Registration (Manager / Receptionist with shift & salary) — manager-only
-✅ Staff Dashboard (accessible to all logged-in staff)
-✅ Staff List & Management (manager-only access)
-✅ Staff Profile Edit (name, password, shift, salary) — manager-only
-✅ Staff Delete — manager-only
-✅ `canApproveRefunds()` — `true` for Manager, `false` for Receptionist
-✅ Session management (login/logout)
-✅ File-based data persistence (`data/staff.txt`)
+- ✅ Staff Login with email & password
+- ✅ Role-based access control (Manager vs Receptionist)
+- ✅ Staff Registration (Manager / Receptionist with shift & salary) — manager-only
+- ✅ Staff Dashboard (accessible to all logged-in staff)
+- ✅ Staff List & Management (manager-only access)
+- ✅ Staff Profile Edit (name, password, shift, salary) — manager-only
+- ✅ Staff Delete — manager-only
+- ✅ `canApproveRefunds()` — `true` for Manager, `false` for Receptionist
+- ✅ Session management (login/logout)
+- ✅ File-based data persistence (`data/staff.txt`)
 
 ---
 
