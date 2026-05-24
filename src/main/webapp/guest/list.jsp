@@ -67,6 +67,20 @@
             background: rgba(255, 255, 255, 0.25) !important;
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.4) !important;
             transform: scale(1.01);
+
+
+        }
+        /* Fix select dropdown text visibility */
+        select.search-glass {
+            color: #ffffff !important;
+            background-color: rgba(31, 64, 55, 0.6) !important;
+        }
+        select.search-glass:focus {
+            color: #ffffff !important;
+        }
+        select.search-glass option {
+            color: #ffffff;
+            background-color: #1f2a30;
         }
 
         /* Glass Table Design */
