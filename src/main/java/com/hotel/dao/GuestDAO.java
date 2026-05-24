@@ -20,19 +20,15 @@ public class GuestDAO {
     }
 
     public Guest findByEmail(String email) {
-        for (String line : FileUtils.readLines(FILE)) {
-            Guest g = fromLine(line);
-            if (g != null && email.equalsIgnoreCase(g.getEmail())) return g;
-        }
-        return null;
+        if (email == null || email.isBlank()) return null;
+        GuestBST tree = buildIndex(KeyType.EMAIL);
+        return tree.search(email);
     }
 
     public Guest findById(String id) {
-        for (String line : FileUtils.readLines(FILE)) {
-            Guest g = fromLine(line);
-            if (g != null && id.equals(g.getId())) return g;
-        }
-        return null;
+        if (id == null || id.isBlank()) return null;
+        GuestBST tree = buildIndex(KeyType.ID);
+        return tree.search(id);
     }
 
     public List<Guest> findAll() {
@@ -101,4 +97,89 @@ public class GuestDAO {
 
     private String safe(String s) { return s == null ? "" : s.replace("|", ""); }
     private int parseInt(String s) { try { return Integer.parseInt(s.trim()); } catch (Exception e) { return 0; } }
+
+    private GuestBST buildIndex(KeyType keyType) {
+        GuestBST tree = new GuestBST(keyType);
+        for (String line : FileUtils.readLines(FILE)) {
+            Guest g = fromLine(line);
+            if (g != null) tree.insert(g);
+        }
+        return tree;
+    }
+
+    private enum KeyType {
+        ID,
+        EMAIL
+    }
+
+    private static class GuestBST {
+        private final KeyType keyType;
+        private Node root;
+
+        private static class Node {
+            private final String key;
+            private Guest guest;
+            private Node left;
+            private Node right;
+
+            private Node(String key, Guest guest) {
+                this.key = key;
+                this.guest = guest;
+            }
+        }
+
+        private GuestBST(KeyType keyType) {
+            this.keyType = keyType;
+        }
+
+        private void insert(Guest guest) {
+            String key = normalize(getKey(guest));
+            if (key == null || key.isBlank()) return;
+            root = insertRec(root, key, guest);
+        }
+
+        private Guest search(String rawKey) {
+            String key = normalize(rawKey);
+            if (key == null || key.isBlank()) return null;
+            Node found = searchRec(root, key);
+            return found == null ? null : found.guest;
+        }
+
+        private Node insertRec(Node node, String key, Guest guest) {
+            if (node == null) return new Node(key, guest);
+            int cmp = key.compareTo(node.key);
+            if (cmp < 0) {
+                node.left = insertRec(node.left, key, guest);
+            } else if (cmp > 0) {
+                node.right = insertRec(node.right, key, guest);
+            } else {
+                node.guest = guest;
+            }
+            return node;
+        }
+
+        private Node searchRec(Node node, String key) {
+            if (node == null) return null;
+            int cmp = key.compareTo(node.key);
+            if (cmp == 0) return node;
+            return (cmp < 0) ? searchRec(node.left, key) : searchRec(node.right, key);
+        }
+
+        private String getKey(Guest guest) {
+            if (guest == null) return null;
+            switch (keyType) {
+                case EMAIL:
+                    return guest.getEmail();
+                case ID:
+                    return guest.getId();
+                default:
+                    return null;
+            }
+        }
+
+        private String normalize(String s) {
+            return s == null ? null : s.trim().toLowerCase();
+        }
+    }
+
 }
