@@ -119,6 +119,52 @@ G54-Hotel-Reservation-System/
 | Update Profile | `POST /guests` (action=profile) |
 | Delete Guest | `POST /guests` (action=delete) |
 
+
+---
+
+## 👤 Staff Management Module (IT25103812)
+
+
+### OOP Concepts Used
+
+| Concept | Implementation |
+|---|---|
+| **Abstraction** | `Staff` is an abstract class with abstract method `getPermissions()` |
+| **Inheritance** | `Manager` and `Receptionist` extend `Staff` |
+| **Polymorphism** | `getPermissions()` returns `"ALL_PERMISSIONS"` for Manager, `"GUEST_MANAGEMENT,RESERVATIONS,BILLING"` for Receptionist |
+| **Encapsulation** | All fields (`staffId`, `name`, `email`, `password`, `role`, `salary`, `shift`) are private with getters/setters |
+
+---
+
+### Features
+
+✅ Staff Login with email & password
+✅ Role-based access control (Manager vs Receptionist)
+✅ Staff Registration (Manager / Receptionist with shift & salary) — manager-only
+✅ Staff Dashboard (accessible to all logged-in staff)
+✅ Staff List & Management (manager-only access)
+✅ Staff Profile Edit (name, password, shift, salary) — manager-only
+✅ Staff Delete — manager-only
+✅ `canApproveRefunds()` — `true` for Manager, `false` for Receptionist
+✅ Session management (login/logout)
+✅ File-based data persistence (`data/staff.txt`)
+
+---
+
+### URL Endpoints
+
+| Action | URL |
+|---|---|
+| Login Page | `GET /staff?action=login` |
+| Dashboard | `GET /staff?action=dashboard` |
+| Register Page | `GET /staff?action=register` |
+| Staff List | `GET /staff?action=manage` |
+| Edit Staff Form | `GET /staff?action=edit&staffId={id}` |
+| Logout | `GET /staff?action=logout` |
+| Submit Login | `POST /staff` (action=login) |
+| Submit Register | `POST /staff` (action=register) |
+| Update Staff | `POST /staff` (action=edit) |
+| Delete Staff | `POST /staff` (action=delete) |
 ---
 
 ## 🚀 How to Run
