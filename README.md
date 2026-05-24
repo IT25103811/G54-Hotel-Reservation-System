@@ -180,7 +180,7 @@ main
  ├── [room-management] 🔄 Pending
  ├── [reservation-management] 🔄 Pending
  ├── [payment-management] 🔄 Pending
- ├── [staff-management] 🔄 Pending
+ ├── Nisal (Staff Management - IT25103812) ✅ Merged
  └── [review-management] 🔄 Pending
 ```
 
