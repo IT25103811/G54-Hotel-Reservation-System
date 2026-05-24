@@ -163,7 +163,26 @@
                 <span class="input-group-text bg-transparent border-0 text-white fs-4"><i class="bi bi-search"></i></span>
                 <input type="text" id="searchInput" class="form-control search-glass" placeholder="Search guests by name, email or phone...">
             </div>
+            <form class="mt-3" method="get" action="${pageContext.request.contextPath}/guests">
+                <input type="hidden" name="action" value="list">
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <select class="form-select search-glass" name="sort">
+                            <option value="name" <c:if test="${sort == 'name'}">selected</c:if>>Sort by Name</option>
+                            <option value="points" <c:if test="${sort == 'points'}">selected</c:if>>Sort by Loyalty Points</option>
+                            <option value="type" <c:if test="${sort == 'type'}">selected</c:if>>Sort by Type</option>
+                            <option value="email" <c:if test="${sort == 'email'}">selected</c:if>>Sort by Email</option>
+                            <option value="id" <c:if test="${sort == 'id'}">selected</c:if>>Sort by Guest ID</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-light w-100">Apply Sort</button>
+                    </div>
+                </div>
+            </form>
         </div>
+
+
 
         <!-- Data Table -->
         <div class="glass-card p-0 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
