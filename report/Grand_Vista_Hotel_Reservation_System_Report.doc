@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Grand Vista Hotel Reservation System - Project Report</title>
+  <style>
+    body { font-family: "Times New Roman", serif; font-size: 12pt; line-height: 1.5; color: #111; }
+    h1, h2, h3 { font-family: "Times New Roman", serif; }
+    h1 { font-size: 20pt; margin-bottom: 8pt; }
+    h2 { font-size: 16pt; margin-top: 18pt; border-bottom: 1px solid #999; padding-bottom: 4pt; }
+    h3 { font-size: 13pt; margin-top: 12pt; }
+    table { border-collapse: collapse; width: 100%; margin-top: 8pt; }
+    th, td { border: 1px solid #999; padding: 6pt; vertical-align: top; }
+    th { background: #efefef; }
+    .cover { text-align: center; margin-top: 40pt; margin-bottom: 40pt; }
+    .cover h1 { margin-bottom: 6pt; }
+    .small { font-size: 10pt; color: #444; }
+    .page-break { page-break-before: always; }
+  </style>
+</head>
+<body>
+
+  <div class="cover">
+    <h1>Grand Vista Hotel Reservation System</h1>
+    <h2 style="border: none;">Project Report</h2>
+    <p>Group G54 - SLIIT Kandy University</p>
+    <p>Semester 2, 2026</p>
+    <p>Date: 24 May 2026</p>
+  </div>
+
+  <h2>Team Members and Responsibilities</h2>
+  <p class="small">Note: Fill in the missing team members if required by your submission guidelines.</p>
+  <table>
+    <tr>
+      <th>Module</th>
+      <th>Team Member</th>
+      <th>Student ID</th>
+      <th>Branch (if used)</th>
+    </tr>
+    <tr>
+      <td>Guest Management</td>
+      <td>Gunarathna R.P.Y.S.A.</td>
+      <td>IT25103811</td>
+      <td>yasas, Guest-managment-CRUD</td>
+    </tr>
+    <tr>
+      <td>Room Management</td>
+      <td>To be provided</td>
+      <td>To be provided</td>
+      <td>To be provided</td>
+    </tr>
+    <tr>
+      <td>Reservation Management</td>
+      <td>To be provided</td>
+      <td>To be provided</td>
+      <td>To be provided</td>
+    </tr>
+    <tr>
+      <td>Payment and Billing</td>
+      <td>To be provided</td>
+      <td>To be provided</td>
+      <td>To be provided</td>
+    </tr>
+    <tr>
+      <td>Staff Management</td>
+      <td>To be provided</td>
+      <td>To be provided</td>
+      <td>To be provided</td>
+    </tr>
+    <tr>
+      <td>Review Management</td>
+      <td>To be provided</td>
+      <td>To be provided</td>
+      <td>To be provided</td>
+    </tr>
+  </table>
+
+  <div class="page-break"></div>
+
+  <h2>1. Introduction</h2>
+  <p>
+    Grand Vista Hotel Reservation System is a full-stack Java web application for hotel operations.
+    It covers guest management, room management, reservations, payments, staff management, and reviews.
+    The system uses JSP for the UI, servlets for controllers, and DAO classes to persist data into text files.
+  </p>
+
+  <h2>2. Objectives</h2>
+  <ul>
+    <li>Provide a complete hotel reservation workflow from browsing to booking and payment.</li>
+    <li>Separate guest and staff functionality with role-based access.</li>
+    <li>Implement a layered MVC-style architecture using JSP, Servlets, Services, and DAOs.</li>
+    <li>Use file-based persistence so the system can run without a database server.</li>
+    <li>Support teamwork through git branches and merges.</li>
+  </ul>
+
+  <h2>3. Technology Stack</h2>
+  <table>
+    <tr><th>Layer</th><th>Technology</th></tr>
+    <tr><td>Backend</td><td>Java 11</td></tr>
+    <tr><td>Web Framework</td><td>Servlet API 4.0.1, JSP 2.3, JSTL 1.2</td></tr>
+    <tr><td>Server</td><td>Embedded Apache Tomcat 9.0.109</td></tr>
+    <tr><td>Build Tool</td><td>Apache Maven</td></tr>
+    <tr><td>Frontend</td><td>Bootstrap 5, Bootstrap Icons, CSS</td></tr>
+    <tr><td>Persistence</td><td>Text files under data/</td></tr>
+    <tr><td>Version Control</td><td>Git and GitHub</td></tr>
+  </table>
+
+  <h2>4. System Architecture</h2>
+  <p>
+    The application follows a layered architecture. JSP pages handle presentation, servlets handle routing and
+    request logic, services and DAOs handle business rules and file persistence, and model classes represent
+    hotel entities.
+  </p>
+  <p><b>Request Flow:</b> Browser -> JSP/Servlet -> Service/DAO -> Text File -> Response</p>
+
+  <h2>5. Module Details</h2>
+
+  <h3>5.1 Guest Management</h3>
+  <ul>
+    <li>Registration for Regular or VIP guests, login, profile update, self-delete, and staff-only guest list.</li>
+    <li>Email and phone validations are enforced in the registration and update flow.</li>
+    <li>Key classes: Guest, RegularGuest, VIPGuest, GuestDAO, GuestServlet.</li>
+    <li>Pages: guest/login.jsp, guest/register.jsp, guest/profile.jsp, guest/list.jsp.</li>
+  </ul>
+
+  <h3>5.2 Room Management</h3>
+  <ul>
+    <li>Room listing, search with filters, staff-only add/edit/delete.</li>
+    <li>Sorting by price, floor, type, and availability using QuickSort utilities.</li>
+    <li>Supports StandardRoom and SuiteRoom with different pricing rules.</li>
+    <li>Pages: room/list.jsp, room/search.jsp, room/add.jsp, room/edit.jsp.</li>
+  </ul>
+
+  <h3>5.3 Reservation Management</h3>
+  <ul>
+    <li>Book, modify, view, and cancel reservations. Staff can update reservation status.</li>
+    <li>Availability checks are performed for requested date ranges.</li>
+    <li>Supports standard, group, and long-stay reservation types.</li>
+    <li>Pages: reservation/book.jsp, reservation/modify.jsp, reservation/view.jsp, reservation/list.jsp.</li>
+  </ul>
+
+  <h3>5.4 Payment and Billing</h3>
+  <ul>
+    <li>Checkout, payment history, and staff-only void/delete operations.</li>
+    <li>Guests can pay by credit card; staff can record cash payments.</li>
+    <li>Supports payment sorting by date, amount, status, and ID.</li>
+    <li>Pages: billing/checkout.jsp, billing/payment.jsp, billing/history.jsp.</li>
+  </ul>
+
+  <h3>5.5 Staff Management</h3>
+  <ul>
+    <li>Staff login and dashboard, manager-only register/edit/delete staff.</li>
+    <li>Two staff roles: Manager and Receptionist with different permissions.</li>
+    <li>Pages: staff/login.jsp, staff/dashboard.jsp, staff/register.jsp, staff/manage.jsp.</li>
+  </ul>
+
+  <h3>5.6 Review Management</h3>
+  <ul>
+    <li>Guests submit reviews (verified or anonymous). Staff can moderate reviews and respond.</li>
+    <li>Reviews are displayed publicly and can be edited.</li>
+    <li>Pages: review/view.jsp, review/submit.jsp, review/moderate.jsp.</li>
+  </ul>
+
+  <h2>6. Object-Oriented Design (OOP)</h2>
+  <ul>
+    <li><b>Abstraction:</b> Guest, Room, Staff, Payment, Review, and AbstractReservation are abstract base classes.</li>
+    <li><b>Inheritance:</b> RegularGuest/VIPGuest, StandardRoom/SuiteRoom, Manager/Receptionist, CashPayment/CreditCardPayment, GroupReservation/LongStayReservation.</li>
+    <li><b>Polymorphism:</b> calculateDiscount, calculatePrice, processPayment, getReservationType, and calculateCancellationFee are overridden in subclasses.</li>
+    <li><b>Encapsulation:</b> Models use private fields with getters/setters.</li>
+  </ul>
+
+  <h2>7. Data Storage</h2>
+  <p>Data is stored in text files in the data/ directory:</p>
+  <ul>
+    <li>data/guests.txt</li>
+    <li>data/rooms.txt</li>
+    <li>data/reservations.txt</li>
+    <li>data/payments.txt</li>
+    <li>data/reviews.txt</li>
+    <li>data/staff.txt</li>
+  </ul>
+
+  <h2>8. Build and Run Instructions</h2>
+  <ol>
+    <li>Install Java 11 and Maven.</li>
+    <li>Run: mvn clean compile</li>
+    <li>Run: mvn exec:java -Dexec.mainClass="com.hotel.Main"</li>
+    <li>Open: http://localhost:8080/</li>
+  </ol>
+
+  <h2>9. Testing and Validation (Manual)</h2>
+  <ul>
+    <li>Create a guest account and confirm it appears in data/guests.txt.</li>
+    <li>Book a reservation and confirm it is listed under reservations.</li>
+    <li>Run payment checkout and confirm payment history updates.</li>
+    <li>Log in as staff and validate access to management pages.</li>
+    <li>Submit a review and confirm it appears in review listing and moderation page.</li>
+  </ul>
+
+  <h2>10. Version Control and Commit History</h2>
+  <p>This section includes commit evidence extracted from the local git logs.</p>
+  <table>
+    <tr>
+      <th>Commit ID</th>
+      <th>Summary</th>
+      <th>Notes</th>
+    </tr>
+    <tr><td>f7dc4d7</td><td>header.jsp replace for guest managment working</td><td>Adjusted shared header for guest module integration.</td></tr>
+    <tr><td>c3ce2a8</td><td>Erro correction</td><td>Fixes after integration.</td></tr>
+    <tr><td>254c224</td><td>Erro correction for all members task</td><td>General fixes across modules.</td></tr>
+    <tr><td>f710bf0</td><td>gust registration phone number validation created.</td><td>Added phone validation.</td></tr>
+    <tr><td>80b2162</td><td>guest update validation phone number and rsgister,update email validation created.</td><td>Improved guest update validation.</td></tr>
+    <tr><td>62e35c0</td><td>Add footer and some data</td><td>Shared UI enhancements.</td></tr>
+    <tr><td>18beb60</td><td>Add heder and some data</td><td>Shared UI enhancements.</td></tr>
+    <tr><td>7af8427</td><td>Add heder and some data</td><td>Shared UI enhancements.</td></tr>
+    <tr><td>765822e</td><td>Add new frontend</td><td>Frontend refresh.</td></tr>
+    <tr><td>45a93e8</td><td>Add guest self delete action and button</td><td>Self-delete for guests.</td></tr>
+    <tr><td>158f0b6</td><td>Name + Email Update and Name + Email input fields add</td><td>Expanded guest profile fields.</td></tr>
+  </table>
+
+  <h2>11. Conclusion</h2>
+  <p>
+    The Grand Vista Hotel Reservation System demonstrates a complete hotel management workflow using core Java web technologies.
+    It includes multiple modules, role-based access, file-based persistence, and OOP design patterns across the model layer.
+    With further enhancements such as database integration and automated testing, the project can be extended for real-world use.
+  </p>
+
+  <p class="small">End of report.</p>
+</body>
+</html>
