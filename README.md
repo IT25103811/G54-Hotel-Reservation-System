@@ -79,7 +79,7 @@ G54-Hotel-Reservation-System/
 | 📅 Reservation Management | TBD | — | 🔄 In Progress |
 | 💳 Payment/Billing Management | TBD | — | 🔄 In Progress |
 | 👨‍💼 Staff Management | Arachchi G.U.A.N.T.G.U. (IT25103812) | `Nisal` `Staff-managment-CRUD` | ✅ Complete |
-| ⭐ Review Management | TBD | — | 🔄 In Progress |
+| ⭐ Review Management | SAMARAKOON S.P.A.V.S(IT25103810) | viraj- Review Management-CRUD |  ✅ Complete |
 
 ---
 
