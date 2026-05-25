@@ -2,10 +2,7 @@ package com.hotel.model;
 
 import java.time.LocalDate;
 
-/**
- * Long-stay reservations (> 7 nights).
- * Policy: apply a small discount to cancellation fee (10% discount on fee).
- */
+
 public class LongStayReservation extends Reservation {
 
     public LongStayReservation() {

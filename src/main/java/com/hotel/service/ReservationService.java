@@ -10,11 +10,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Service layer for Reservation business logic.
- * Responsibilities: validate business rules, double-booking prevention, auto-calculations,
- * coordinate file operations, enforce system integrity.
- */
+
 public class ReservationService {
 
     private final ReservationDAO reservationDAO;
@@ -89,27 +85,7 @@ public class ReservationService {
         return reservationDAO.findByStatus(status);
     }
 
-    /**
-     * CRITICAL: Create a new reservation with full validation.
-     *
-     * Business Rules Enforced:
-     * 1. Check-out date must be after check-in date
-     * 2. Room must exist and be available
-     * 3. Check-in date cannot be in the past
-     * 4. Double-booking prevention: NO overlapping reservations for the same room
-     * 5. Guest must exist
-     * 6. Auto-calculate number of nights and total amount
-     * 7. Guest cannot have more than 5 active reservations
-     *
-     * @param guestId Guest ID
-     * @param roomNumber Room number to book
-     * @param checkIn Check-in date (YYYY-MM-DD)
-     * @param checkOut Check-out date (YYYY-MM-DD)
-     * @param specialRequests Special requests
-     * @return Created Reservation object
-     * @throws IllegalArgumentException if validation fails
-     * @throws IllegalStateException if business rule violation occurs
-     */
+
     public Reservation createReservation(String guestId, String roomNumber,
                                          LocalDate checkIn, LocalDate checkOut,
                                          String specialRequests) {
@@ -326,13 +302,7 @@ public class ReservationService {
         return !reservationDAO.checkDateOverlap(roomNumber, checkIn, checkOut, excludeId);
     }
 
-    /**
-     * Calculate cancellation fee based on days until check-in.
-     * Business rule:
-     * - More than 7 days before: No cancellation fee (100% refund)
-     * - 1-7 days before: 50% refund
-     * - Day of check-in or later: No refund
-     */
+
     public double calculateCancellationFee(String reservationId) {
         if (reservationId == null || reservationId.trim().isEmpty()) {
             throw new IllegalArgumentException("Reservation ID cannot be empty");

@@ -7,10 +7,7 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
-// ── Package-private abstract base ──────────────────────────────────────────────
-// Replaces the old IReservationRepository interface + ReservationRepository
-// abstract class. Shared validation helpers live here; all CRUD operations are
-// declared abstract and implemented by ReservationDAO below.
+
 abstract class AbstractReservationDAO {
 
     // ── Shared validation helpers (inherited by ReservationDAO) ──────────────
@@ -46,18 +43,7 @@ abstract class AbstractReservationDAO {
 }
 
 
-/**
- * Concrete file-backed DAO for Reservation objects.
- *
- * Extends AbstractReservationDAO (package-private) which carries shared
- * validation helpers. The old IReservationRepository interface and the
- * separate ReservationRepository abstract class have been removed; their
- * responsibilities are now consolidated here.
- *
- * Polymorphism: fromLine() inspects the persisted data and returns the most
- * specific subtype (LongStayReservation, GroupReservation, or Reservation),
- * so callers automatically get the correct calculateCancellationFee() etc.
- */
+
 public class ReservationDAO extends AbstractReservationDAO {
 
     private static final String FILE = "reservations.txt";
@@ -239,14 +225,7 @@ public class ReservationDAO extends AbstractReservationDAO {
         );
     }
 
-    /**
-     * Deserialises one file line into the most specific Reservation subtype.
-     *
-     * Polymorphic dispatch rules:
-     *   1. specialRequests starts with "GROUP:" → GroupReservation
-     *   2. nights > 7                           → LongStayReservation
-     *   3. otherwise                            → Reservation  (standard)
-     */
+
     private Reservation fromLine(String line) {
         if (line == null || line.trim().isEmpty()) return null;
         String[] p = line.split("\\|", -1);
