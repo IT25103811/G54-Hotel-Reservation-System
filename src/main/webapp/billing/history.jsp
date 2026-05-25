@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="com.hotel.model.*" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html lang="en">
@@ -17,6 +18,22 @@
   <h3 class="mb-4" style="color: var(--hotel-primary);">
     <i class="bi bi-receipt"></i> Payment History
   </h3>
+
+  <%-- Success / Error flash messages --%>
+  <% String _succ = (String) session.getAttribute("successMessage");
+     if (_succ != null) { session.removeAttribute("successMessage"); %>
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle-fill me-2"></i><%= _succ %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <% } %>
+  <% String _err = (String) session.getAttribute("errorMessage");
+     if (_err != null) { session.removeAttribute("errorMessage"); %>
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i><%= _err %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <% } %>
 
   <div class="card">
     <div class="card-body p-0">
@@ -49,18 +66,30 @@
             </td>
             <td class="small">${p.timestamp}</td>
             <td>
-              <% if (session.getAttribute("loggedInStaff") != null) { %>
-              <c:if test="${p.status == 'PAID'}">
+              <div class="d-flex gap-1 flex-wrap">
+              <%-- Void button: staff only, PAID payments --%>
+              <c:if test="${not empty sessionScope.loggedInStaff and p.status eq 'PAID'}">
               <form action="${pageContext.request.contextPath}/payments" method="post" class="d-inline"
-                    onsubmit="return confirm('Void this payment?');">
+                    onsubmit="return confirm('Void payment ${p.paymentId}?');">
                 <input type="hidden" name="action" value="void">
                 <input type="hidden" name="paymentId" value="${p.paymentId}">
-                <button type="submit" class="btn btn-sm btn-outline-danger">
-                  <i class="bi bi-x-circle"></i> Void
+                <button type="submit" class="btn btn-sm btn-outline-warning">
+                  <i class="bi bi-slash-circle"></i> Void
                 </button>
               </form>
               </c:if>
-              <% } %>
+              <%-- Delete button: staff only, VOIDED payments only --%>
+              <c:if test="${not empty sessionScope.loggedInStaff and p.status eq 'VOIDED'}">
+              <form action="${pageContext.request.contextPath}/payments" method="post" class="d-inline"
+                    onsubmit="return confirm('Permanently delete payment ${p.paymentId}?\nThis cannot be undone.');">
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="paymentId" value="${p.paymentId}">
+                <button type="submit" class="btn btn-sm btn-danger">
+                  <i class="bi bi-trash3"></i> Delete
+                </button>
+              </form>
+              </c:if>
+              </div>
             </td>
           </tr>
           </c:forEach>
