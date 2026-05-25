@@ -79,10 +79,10 @@
 <%@ include file="/includes/footer.jsp" %>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-function toggleJacuzzi() {
+  function toggleJacuzzi() {
     const cls = document.getElementById('roomClass').value;
     document.getElementById('jacuzziSection').style.display = (cls === 'SUITE') ? 'block' : 'none';
-}
+  }
 </script>
 </body>
 </html>

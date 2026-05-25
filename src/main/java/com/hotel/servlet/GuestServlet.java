@@ -6,6 +6,8 @@ import javax.servlet.*;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
+import com.hotel.util.GuestSorter;
+import java.util.List;
 
 @WebServlet("/guests")
 public class GuestServlet extends HttpServlet {
@@ -29,7 +31,12 @@ public class GuestServlet extends HttpServlet {
                 case "list":
                     requireStaffLogin(req, resp);
                     if (!resp.isCommitted()) {
-                        req.setAttribute("guests", guestDAO.findAll());
+                        String sortParam = req.getParameter("sort");
+                        GuestSorter.SortBy sortBy = parseGuestSort(sortParam);
+                        List<Guest> guests = guestDAO.findAll();
+                        guests = GuestSorter.sort(guests, sortBy);
+                        req.setAttribute("guests", guests);
+                        req.setAttribute("sort", sortParam == null ? "name" : sortParam.toLowerCase());
                         req.getRequestDispatcher("/guest/list.jsp").forward(req, resp);
                     }
                     break;
@@ -96,6 +103,17 @@ public class GuestServlet extends HttpServlet {
         String guestType = req.getParameter("guestType");
         String tier = req.getParameter("membershipTier");
 
+        if (phone == null || !phone.matches("^\\+[0-9]{11}$")) {
+            req.setAttribute("error", "Invalid phone number. Must start with '+' and contain exactly 11 numbers (e.g., +94771234567).");
+            req.getRequestDispatcher("/guest/register.jsp").forward(req, resp);
+            return;
+        }
+        if (email == null || !email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
+            req.setAttribute("error", "Invalid email address format.");
+            req.getRequestDispatcher("/guest/register.jsp").forward(req, resp);
+            return;
+        }
+
         if (guestDAO.findByEmail(email) != null) {
             req.setAttribute("error", "Email already registered.");
             req.getRequestDispatcher("/guest/register.jsp").forward(req, resp);
@@ -135,14 +153,29 @@ public class GuestServlet extends HttpServlet {
         String password = req.getParameter("password");
         String name = req.getParameter("name");
         String email = req.getParameter("email");
-        if (email != null && !email.isBlank() && !email.equalsIgnoreCase(guest.getEmail())) {
-            Guest existing = guestDAO.findByEmail(email);
-            if (existing != null && !existing.getId().equals(guest.getId())) {
-                req.setAttribute("error", "This email is already used by another account.");
+        if (email != null && !email.isBlank()) {
+            if (!email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
+                req.setAttribute("error", "Invalid email format. Please enter a valid email address.");
                 req.getRequestDispatcher("/guest/profile.jsp").forward(req, resp);
                 return;
             }
+
+            if (!email.equalsIgnoreCase(guest.getEmail())) {
+                Guest existing = guestDAO.findByEmail(email);
+                if (existing != null) {
+                    req.setAttribute("error", "Email is already taken by another user.");
+                    req.getRequestDispatcher("/guest/profile.jsp").forward(req, resp);
+                    return;
+                }
+                guest.setEmail(email);
+            }
         }
+        if (phone != null && !phone.isEmpty() && !phone.matches("^\\+[0-9]{11}$")) {
+            req.setAttribute("error", "Invalid phone number. Must start with '+' and contain exactly 11 numbers.");
+            req.getRequestDispatcher("/guest/profile.jsp").forward(req, resp);
+            return;
+        }
+
         if (phone != null && !phone.isEmpty()) guest.setPhone(phone);
         if (password != null && !password.isEmpty()) guest.setPassword(password);
         if (name != null && !name.isBlank()) guest.setName(name);
@@ -165,6 +198,22 @@ public class GuestServlet extends HttpServlet {
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("loggedInStaff") == null) {
             resp.sendRedirect(req.getContextPath() + "/staff?action=login");
+        }
+    }
+    private GuestSorter.SortBy parseGuestSort(String sort) {
+        if (sort == null) return GuestSorter.SortBy.NAME;
+        switch (sort.toLowerCase()) {
+            case "points":
+                return GuestSorter.SortBy.LOYALTY_POINTS;
+            case "type":
+                return GuestSorter.SortBy.TYPE;
+            case "email":
+                return GuestSorter.SortBy.EMAIL;
+            case "id":
+                return GuestSorter.SortBy.ID;
+            case "name":
+            default:
+                return GuestSorter.SortBy.NAME;
         }
     }
 
