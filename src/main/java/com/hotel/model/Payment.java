@@ -11,22 +11,7 @@ public abstract class Payment {
         PENDING, PAID, VOIDED
     }
 
-    private String paymentId;
-    private String reservationId;
-    private double amount;
-    private Status status;
-    private LocalDateTime timestamp;
 
-    public Payment() {}
-
-    public Payment(String paymentId, String reservationId, double amount,
-                   Status status, LocalDateTime timestamp) {
-        this.paymentId = paymentId;
-        this.reservationId = reservationId;
-        this.amount = amount;
-        this.status = status;
-        this.timestamp = timestamp;
-    }
 
     public abstract boolean processPayment();
     public abstract String getPaymentType();
