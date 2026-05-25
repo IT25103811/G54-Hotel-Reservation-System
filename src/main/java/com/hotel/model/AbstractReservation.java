@@ -3,20 +3,7 @@ package com.hotel.model;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
-/**
- * Abstract base class for all Reservation types.
- *
- * Inheritance Hierarchy:
- *   AbstractReservation  (abstract — core fields, template methods)
- *       └── Reservation  (concrete — standard hotel reservation)
- *               ├── LongStayReservation   (concrete — stays > 7 nights, 10 % discount on fee)
- *               └── GroupReservation      (concrete — group bookings with group reference)
- *
- * Polymorphic contract (abstract methods every subclass must implement):
- *   - getReservationType()       → human-readable type label
- *   - calculateCancellationFee() → type-specific cancellation policy
- *   - getMaxNights()             → maximum allowed stay length
- */
+
 public abstract class AbstractReservation {
 
     // ── Status enum (shared by all subtypes) ─────────────────────────────────
@@ -54,44 +41,29 @@ public abstract class AbstractReservation {
 
     // ── Abstract methods — subclasses MUST override ───────────────────────────
 
-    /**
-     * Returns a human-readable label for this reservation type.
-     * e.g. "Standard", "Long Stay", "Group"
-     */
+
     public abstract String getReservationType();
 
-    /**
-     * Calculates the cancellation fee according to the type-specific policy.
-     * Each subclass defines its own rules.
-     */
+
     public abstract double calculateCancellationFee();
 
-    /**
-     * Returns the maximum number of nights allowed for this reservation type.
-     */
+
     public abstract long getMaxNights();
 
     // ── Concrete shared methods ───────────────────────────────────────────────
 
-    /**
-     * Returns the number of booked nights (always >= 0).
-     */
+
     public long getNights() {
         if (checkIn == null || checkOut == null) return 0;
         return Math.max(ChronoUnit.DAYS.between(checkIn, checkOut), 0);
     }
 
-    /**
-     * Returns true when the reservation can still be modified or cancelled.
-     * Shared rule: CANCELLED and CHECKED_OUT reservations are immutable.
-     */
+
     public boolean isModifiable() {
         return status != Status.CANCELLED && status != Status.CHECKED_OUT;
     }
 
-    /**
-     * Returns true when the supplied date range is logically valid.
-     */
+
     protected boolean isValidDateRange(LocalDate ci, LocalDate co) {
         if (ci == null || co == null) return false;
         return co.isAfter(ci);
